@@ -486,7 +486,7 @@ Bonus question: what if we include an additional layer? Is my heart rate just ad
 - to start answering this we can add a column indicating the previous change in hr in the other and one in respiration
 - we can then build on the previous models by also adding the previous change in the other
 
-
+Preprocessing before analysis
 ```{r}
 # Genearate a column for each: previous HR1, HR2, Resp1, Resp2
 ## We use group by first
@@ -567,7 +567,9 @@ write.csv(dd, "dd.csv")
   #(1 + (HR_self + HR_other) + condition | participant) + 
   #(1 + (HR_self + HR_other) + condition | group), data = dd)
 #summary(model)
-
+```
+Analysis
+```{r}
 library(lmerTest)
 
 # We use : to better interpret the interaction
@@ -582,6 +584,28 @@ model_s <- lmer(HR_change_self ~ 0 + condition +
                 (HR_self_past + HR_other_past)*condition + 
                 (0 + condition | participant) +
                 (0 + condition | group), data = dd)
+summary(model_s)
+#Here we get significant conditionSynchronous:HR_self_past, conditionSynchronous:HR_other_past  and conditionTurnTaking:HR_other_past
+
+# We want to look at coupling for conditionSynchronous:HR_other_past  and conditionTurnTaking:HR_other_past
+
+# We make the model with 1 +
+model_s_1 <- lmer(HR_change_self ~ 1 + condition + 
+                (HR_self_past + HR_other_past)*condition + 
+                (1 + condition | participant) +
+                (1 + condition | group), data = dd)
+summary(model_s_1)
+
+
+############ We make a nice output for interpretation ########3
+sum <- summary(model_s)
+output <- as.data.frame(sum$coefficients)
+sig_output <- subset(output, output$`Pr(>|t|)` < 0.05)
+sig_output <- round(sig_output, 2)
+#Making a column for nice read
+sig_output$p_value <- ">0.01"
+sig_output[1, 6] <- ">0.05"
+sig_output[4, 6] <- ">0.05"
 
 #I get no p values
 summary(model_c)
@@ -590,6 +614,8 @@ summary(model_s)
 # Bonus points: Add to the previous model also change in the other to see whether my adaptation is influenced by the other's adaptation.
 
 ```
+
+
 For colon we get conditionConversation:HR_self, conditionSynchronous:HR_self and conditionTurnTaking:HR_self significant
 For star we only get HR_self and conditionSynchronous:HR_self significant. 
 
@@ -670,12 +696,28 @@ model_shuffle <- lmer(HR_change_self ~ 0 + condition +
                 (0 + condition | participant) +
                 (0 + condition | group), data = dd)
 
+######## We make a table woth significant coefficients ###########
+sum <- summary(model_shuffle)
+output <- as.data.frame(sum$coefficients)
+sig_output <- subset(output, output$`Pr(>|t|)` < 0.05)
+sig_output <- round(sig_output, 2)
+#Making a column for nice read
+sig_output$p_value <- ">0.01"
+
+
 #Also run it with the star * so we can see whether the interaction is there
 
 model_shuffle_s <- lmer(HR_change_self ~ 0 + condition + 
                 ((HR_self_past + HR_other_past)*condition)*pair + 
                 (0 + condition | participant) +
                 (0 + condition | group), data = dd)
+sum <- summary(model_shuffle_s)
+output <- as.data.frame(sum$coefficients)
+sig_output <- subset(output, output$`Pr(>|t|)` < 0.05)
+sig_output <- round(sig_output, 2)
+#Making a column for nice read
+sig_output$p_value <- ">0.01"
+sig_output[2, 6] <- ">0.05"
 
 #I get no p values
 summary(model_shuffle)
@@ -696,6 +738,10 @@ Groups <- as.numeric(as.character(unique(phys_data$group[phys_data$study==4]))) 
 
 SurrogateList <- expand.grid(a = Groups, b = Groups) # Identify all possible combinations of 2 pairs
 SurrogateList = subset(SurrogateList, a != b)  # exclude combinations with identical pairs
+#We only want 8 surrogate pairs
+set.seed(33)
+rows <- sample(nrow(SurrogateList), 8)
+SurrogateList <- SurrogateList[rows, ]
 
 surrodf <- tibble()
 for (i in 1:nrow(SurrogateList)){ # loop through all combinations
@@ -728,9 +774,8 @@ phys_data$type <- "real"
 # Make it into long format
 surro <- bind_rows(surrodf, phys_data)
 
-# Create models as in chunks above, but adding an interaction with the Real vs. Surrogate variable (exclude shuffled ones for simplicity)
-#We add type as an interaction
-# We use : to better interpret the interaction. We add parenthesis to see the effect compared to our previous. 
+
+###### We create HR_change_self like we have done earlier ############
 d_hr_change <- gather(surro, participant, HR_change_self, HR1_change, HR2_change)%>%
   select(time, HR_change_self, participant, study, group, condition, type) %>% 
   mutate(participant = parse_number(as.character(group)) * 10 + parse_number(participant)) 
@@ -740,7 +785,7 @@ d_hr_change_other <- gather(surro, participant, HR_change_other, HR2_change, HR1
   select(time, HR_change_other, participant, study, group, condition, type) %>% 
   mutate(participant = parse_number(as.character(group)) * 10 + parse_number(participant)) 
 
-##### We make HR_self and HR_other as we need them later #####
+##### We make HR_self and HR_other like before #####
 
 HR_self<- gather(surro, participant, HR_self, HR1, HR2)%>%
   select(time, HR_self, participant, study, group, condition, type) %>% 
@@ -749,6 +794,8 @@ HR_self<- gather(surro, participant, HR_self, HR1, HR2)%>%
 HR_other <- gather(surro, participant, HR_other, HR2, HR1)%>%
   select(time, HR_other, participant, study, group, condition, type) %>% 
   mutate(participant = parse_number(as.character(group)) * 10 + parse_number(participant))
+
+######### We make HR_self past like earlier ############
 
 #We will make one for HR_self past 
 d_hr_self <- gather(surro, participant, HR_self_past, HR1_past, HR2_past)%>%
@@ -766,12 +813,26 @@ d_hr_self$HR_other_past <- d_hr_other$HR_other_past
 d_hr_self$HR_other <- HR_other$HR_other
 d_hr_self$HR_self <- HR_self$HR_self
 
+# We merge them together like earlier
 dd_surro <- merge(d_hr_change, d_hr_self)
+
+# Create models as in chunks above, but adding an interaction with the Real vs. Surrogate variable (exclude shuffled ones for simplicity)
+#We add type as an interaction
+# We use : to better interpret the interaction. We add parenthesis to see the effect compared to our previous. 
 
 model_su <- lmer(HR_change_self ~ 0 + condition + 
                 ((HR_self_past + HR_other_past):condition):type + 
                 (0 + condition | participant) +
                 (0 + condition | group), data = dd_surro)
+sum <- summary(model_su)
+output <- as.data.frame(sum$coefficients)
+output <- round(output, 2)
+#We want to show only the significant
+sig_output <- subset(output, output$`Pr(>|t|)` < 0.05)
+sig_output$p_value <- ">0.01"
+sig_output[7, 6] <- ">0.05"
+sum
+
 
 #Also run it with the star * so we can see whether the interaction is there
 
@@ -779,6 +840,15 @@ model_su_s <- lmer(HR_change_self ~ 0 + condition +
                 ((HR_self_past + HR_other_past)*condition)*type + 
                 (0 + condition | participant) +
                 (0 + condition | group), data = dd_surro)
+
+sum_2 <- summary(model_su_s)
+output_2 <- as.data.frame(sum_2$coefficients)
+sig_output_2 <- subset(output_2, output_2$`Pr(>|t|)` < 0.05)
+sig_output_2 <- round(sig_output_2, 2)
+#We want to show only the significant
+sig_output_2$p_value <- ">0.01"
+sig_output_2[2:4, 6] <- ">0.05"
+sum_2
 
 # 0 + (condition + (HR_s + HR_o):Condition):type
 #For conversation the coupling parameter is probably different
