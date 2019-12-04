@@ -23,19 +23,16 @@ In this assignment, you will learn to:
 
 This assignment has two parts. The first part familiarizes you with heart rate, and respiration data and their preprocessing. The second part explores how to analyze interpersonal coordination of these signals.
 
-These are the questions you need to be able to answer at the end of the assignment (aka that you need to submit as part of the portfolio)
-
-1) How do you preprocess heart rate and respiration data? Describe the process. If any data needs to be excluded, list the excluded data and motivate the exclusion.
-
-2) Do you observe interpersonal coordination in heart rate and respiration? Describe your control baseline, the method used to quantify coordination, and the statistical models used to infer whether coordination was higher than in the baseline. Report the results of the models.
-
-3) Do you observe differences in coordination between conditions? Report the models and results.
-
-4) Is respiration coordination a likely driver of heart rate coordination? Describe how you would test for it. Bonus points if you actually run the tests and report methods and results.
-
-N.B. to give you a bit more data I included data from previous years (Study1, Study2 and Study 3). Note that synchronouns and turn-taking are the same across both studies, but the third condition is different: in the first year it was self-paced joint reading; in the second year it was the tv-series conversation.
-
 ## Let's get started
+```{r}
+# Load the libraries
+library(pacman)
+pacman::p_load(ggplot2)
+p_load(gridExtra, groupdata2, tidyverse)
+library(stringi)
+library(lme4)
+```
+
 
 ### Exploring physiological signals
 
@@ -55,12 +52,7 @@ N.B. to give you a bit more data I included data from previous years (Study1, St
 - Add a column for study, group, trial and condition
 
 ```{r}
-# Load the libraries
-library(pacman)
-pacman::p_load(ggplot2)
-p_load(gridExtra, groupdata2, tidyverse)
-library(stringi)
-library(lme4)
+
 # Load the file
 sync <- read.csv("data/Study4_G3_T3_Synchronous.csv")
 # We plot the data
@@ -215,90 +207,82 @@ gridExtra::grid.arrange(d_HR, d_resp)
 # We need to make a function that can read the data, remove outliers, and downsampling
 
 #### Function for preprocessing all data 
-read_filename <- function(filename){
-     
-    # load data
-     data <- read.delim(filename, sep = ",")
-     
-          #In one study (study 4) there is no time column, instead it's called TimeMs (except for one       where it's time but in minutes.) Therefore we added this to rename that column for study 4
-     study <- stringr::word(filename, start = 1, sep = "_") #Takes out the filename in a new          variable study
-     study <- stringr::str_sub(study, start = 6) #Takes the study
-     if (study=="4"){data <- data %>% rename(time = TimeMs)} #If study is study 4 it renames
-    
-     data$time <- as.numeric(data$time)
-     
-     if (study=="4"){data$time <- data$time/1000} # changing study 4 to seconds      
-     #we downsample
-     data$rowname<-rep(1:nrow(data),1)
-     
-     data = data %>%
-      group(n = 1000, method = 'greedy') %>%
-      dplyr::summarise(
-        time = mean(time,na.rm=T),
-        HR1 = mean(HR1,na.rm=T),
-        HR2 = mean(HR2,na.rm=T),
-        Resp1 = mean(Resp1,na.rm=T),
-        Resp2 = mean(Resp2,na.rm=T),
-        rowname = rowname[1])
-    
-     #we remove outliers
-     data$Resp1<-removeOuts(data$Resp1,2.5)
-     data$Resp2<-removeOuts(data$Resp2,2.5)
-     data$HR1<-removeOuts(data$HR1,2.5)
-     data$HR2<-removeOuts(data$HR2,2.5)
-     
-     #we scale
-     data$Resp1<-scale(data$Resp1)
-     data$Resp2<-scale(data$Resp2)
-     data$HR1<-scale(data$HR1)
-     data$HR2<-scale(data$HR2)
-     
-    # parse filename to extract study, diagnosis, subject and trial
-     data$group <- word(filename, start = -3, sep = "_")
-     data$group<-str_sub(data$group, start = 2)
-     
-     data$condition <- word(filename, start = -1, sep = "_")
-     data$condition<-str_sub(data$condition, end = -5)
-     
-     data$study <- word(filename, start = 1, sep = "_")
-     data$study<-str_sub(data$study, start = 6)
-     
-     data$trial <- word(filename, start = 3, sep = "_")
-     data$trial <-str_sub(data$trial, start = 2)
-     
-     data$.groups = NULL
-     data$rowname = NULL
-     
-     return(data)
-}
-
-#Test on one file 
-test <- read_filename("Study1_G1_T1_Synchronous.csv")
-
-
-#  Identify all files to be read
-# Run the function on the whole dataset using map_df
-listed<- list.files(pattern="*.csv") %>% 
-    purrr::map_df(read_filename) 
-
-#Creating unique ID for each pair acros studies 
-listed <- listed %>% mutate(uPairID = paste(study, group, sep = "_"), 
-                    uPairID = as.numeric(as.factor(uPairID)))
-
-write.csv(listed, "data_study_4.csv")
+# read_filename <- function(filename){
+#      
+#     # load data
+#      data <- read.delim(filename, sep = ",")
+#      
+#           #In one study (study 4) there is no time column, instead it's called TimeMs (except for one       where it's time but in minutes.) Therefore we added this to rename that column for study 4
+#      study <- stringr::word(filename, start = 1, sep = "_") #Takes out the filename in a new          variable study
+#      study <- stringr::str_sub(study, start = 6) #Takes the study
+#      if (study=="4"){data <- data %>% rename(time = TimeMs)} #If study is study 4 it renames
+#     
+#      data$time <- as.numeric(data$time)
+#      
+#      if (study=="4"){data$time <- data$time/1000} # changing study 4 to seconds      
+#      #we downsample
+#      data$rowname<-rep(1:nrow(data),1)
+#      
+#      data = data %>%
+#       group(n = 1000, method = 'greedy') %>%
+#       dplyr::summarise(
+#         time = mean(time,na.rm=T),
+#         HR1 = mean(HR1,na.rm=T),
+#         HR2 = mean(HR2,na.rm=T),
+#         Resp1 = mean(Resp1,na.rm=T),
+#         Resp2 = mean(Resp2,na.rm=T),
+#         rowname = rowname[1])
+#     
+#      #we remove outliers
+#      data$Resp1<-removeOuts(data$Resp1,2.5)
+#      data$Resp2<-removeOuts(data$Resp2,2.5)
+#      data$HR1<-removeOuts(data$HR1,2.5)
+#      data$HR2<-removeOuts(data$HR2,2.5)
+#      
+#      #we scale
+#      data$Resp1<-scale(data$Resp1)
+#      data$Resp2<-scale(data$Resp2)
+#      data$HR1<-scale(data$HR1)
+#      data$HR2<-scale(data$HR2)
+#      
+#     # parse filename to extract study, diagnosis, subject and trial
+#      data$group <- word(filename, start = -3, sep = "_")
+#      data$group<-str_sub(data$group, start = 2)
+#      
+#      data$condition <- word(filename, start = -1, sep = "_")
+#      data$condition<-str_sub(data$condition, end = -5)
+#      
+#      data$study <- word(filename, start = 1, sep = "_")
+#      data$study<-str_sub(data$study, start = 6)
+#      
+#      data$trial <- word(filename, start = 3, sep = "_")
+#      data$trial <-str_sub(data$trial, start = 2)
+#      
+#      data$.groups = NULL
+#      data$rowname = NULL
+#      
+#      return(data)
+# }
+# 
+# #Test on one file 
+# test <- read_filename("Study1_G1_T1_Synchronous.csv")
+# 
+# 
+# #  Identify all files to be read
+# # Run the function on the whole dataset using map_df
+# listed<- list.files(pattern="*.csv") %>% 
+#     purrr::map_df(read_filename) 
+# 
+# #Creating unique ID for each pair acros studies 
+# listed <- listed %>% mutate(uPairID = paste(study, group, sep = "_"), 
+#                     uPairID = as.numeric(as.factor(uPairID)))
+# 
+# write.csv(listed, "data_study_4.csv")
 
 ```
 
 
 ## Now we are ready to go to load and pre-process all files
-
-Go through all the files (with a function passed onto map_df), check which files should be excluded, if any, and save the pre-processed time-series
-
-A couple of tips:
-- looping is oh so slow. Making a function and using Map/Map_df is your salvation.
-- each study restarts the group numbering, so you should make sure to change that (e.g. 100 * Study + Group)
-- you need to make sure all the data are meaningful or something has to be removed. Plotting is your friend. E.g. "Study1_G1_T1_Synchronous" has one bad respiration signal. We could replace it with NAs
-
 ```{r, include=FALSE}
 # Now we need to make sure all the data are meaningful or something has to be removed
 # E.g. "Study1_G1_T1_Synchronous" has one bad respiration signal. We could replace it with NAs
@@ -311,8 +295,7 @@ check_plot <- ggplot(study_check) + geom_path(aes(TimeMs, Resp1, color = "Partic
   theme(legend.position="bottom") + ggtitle("Study 4 Group 1 Respiration")
 check_plot
 ```
-
-
+## We will plot to look for flat lines etc. and exclude if there are any
 ```{r}
 #We load out df created before
 phys_data <- read.csv("pre/data_study_4.csv")
@@ -448,7 +431,7 @@ gridExtra::grid.arrange(study_4_plot_3, study_4_plot_4)
 gridExtra::grid.arrange(study_4_plot_5, study_4_plot_6)
 
 ```
-We see that group 7 in the synchronous condition has a flat point for heart rate for participant two in the middle.(We each did two groups each and this was the only one with visisble flat lines). We should exclude this condition for that pair. 
+We see that group 7 in the synchronous condition has a flat point for heart rate for participant two in the middle.(We each did two groups each in the studygroup and this was the only one with visisble flat lines). We should exclude this condition for that pair. 
 ```{r}
 # Remove bad data
 
@@ -462,7 +445,6 @@ phys_data <- merge(try, try_2, all = T)
 
 # Save the data
 ```
-
 
 
 ## Now we need to run some analysis
@@ -481,10 +463,6 @@ We can then run an analysis where change is a function of one's previous state (
 - set up the most interesting contrasts: how do these parameters vary by condition? which condition should be baseline?
 - set up the right random effects.
 - N.B. the model will be slow. Make sure it works on a subset of the data first!
-
-Bonus question: what if we include an additional layer? Is my heart rate just adjusting to yours, or also to how much you are adjusting to mine?
-- to start answering this we can add a column indicating the previous change in hr in the other and one in respiration
-- we can then build on the previous models by also adding the previous change in the other
 
 Preprocessing before analysis
 ```{r}
@@ -562,11 +540,6 @@ dd <- merge(dd, d_hr_self)
 
 write.csv(dd, "dd.csv")
 
-# Model change as a function of own and other previous state 
-#model <- lmer(HR_change_self ~ 1 + (HR_self + HR_other) + condition + 
-  #(1 + (HR_self + HR_other) + condition | participant) + 
-  #(1 + (HR_self + HR_other) + condition | group), data = dd)
-#summary(model)
 ```
 Analysis
 ```{r}
@@ -604,63 +577,13 @@ sig_output <- subset(output, output$`Pr(>|t|)` < 0.05)
 sig_output <- round(sig_output, 2)
 #Making a column for nice read
 sig_output$p_value <- ">0.01"
-sig_output[1, 6] <- ">0.05"
-sig_output[4, 6] <- ">0.05"
+sig_output[2, 6] <- ">0.05"
 
 #I get no p values
 summary(model_c)
 summary(model_s)
-
-# Bonus points: Add to the previous model also change in the other to see whether my adaptation is influenced by the other's adaptation.
-
+summary(model_s_1)
 ```
-
-
-For colon we get conditionConversation:HR_self, conditionSynchronous:HR_self and conditionTurnTaking:HR_self significant
-For star we only get HR_self and conditionSynchronous:HR_self significant. 
-
-Interpreting:
-We don't care about the intercepts. 
-We care about stability as a sanity check. The heart rate should be stable. 
-Probably significant p values. They are negative. cc:HRs. CT:HRs. CS:HRs
-When we look at the other. It looks like not that much coupling effect. Does not seem to be significant coupling. 
-If significant coupling: For synchronous it should be a positive number further from 1?? We have a standard error of only 0.01. 
-
-
-
-Why are we predicting HR_change instead of HR_future?
-The change will tell us whether it will e.g. keep going up. 
-
-The fixed / structure of effect are stability, coupling and condition. 
-We cannot expect coupling to be the same for all participants because one participant mght be much more engage. 
-We cannot expect stability to be the same for all participants because for e.g. healthier people they have stronger HR. 
-
-We hope there is an average statistical effect across all participants. There are good reasons for this --> therefore random effects. 
-
-If very engage in a pair --> condition might change the value of coupling and stability which can differ across pairs. 
-
-How do we model this?
-1 ~ (HR_self + HR_other) * condition
-This just gives one intercept. The average level of change when HR_self and HR_other are 0. 
-
-We might want seperate intercepts for each group
-We do this by adding 0 instead of 1. Meaning don't give me 1 intercept
-0 ~ (HR_self + HR_other) * condition
-When both are at baseline. What is the intercept for each condition. 3 values for us. 
-0 + condition + (HR_s + HR_o):condition
-Here we say 3 intercepts for main effect and 3 slopes(?) for the condition interaction.
-The surrogate pairs are a better control baseline. Then we can add type.
-
-0 + condition + (HR_s + HR_o):condition + 
-   (0 + condition + (HR_self + HR_other):condition | participant) + #We tell the model not all data is the same. Counting for interdependence of the data
-   (0 + condition + (HR_self + HR_other):condition | group) # We are doing partial pooling. Keep in mind there is another person in the pair. 
-   ONLY IN THE IDEAL WORLD. Or when we learn bayesian statistics. Too complex. It's 1000 dimensions. In Bayes we can put in prior info. 
-  
-Instead we should simplyfy the model
-We remove stability and coupling. 
-0 + condition + (HR_s + HR_o):condition
-   
-
 
 ## Now we need to create control baselines.
 
@@ -674,7 +597,6 @@ Tip: sample() is your friend, but make sure to shuffle things within participant
 ```{r}
 
 # Create a shuffled dataset
-
 
 # Concatenate it to the original dataset (and remember to have a column telling you which is which)
 shuffle <- dd
@@ -695,22 +617,25 @@ model_shuffle <- lmer(HR_change_self ~ 0 + condition +
                 ((HR_self_past + HR_other_past):condition):pair + 
                 (0 + condition | participant) +
                 (0 + condition | group), data = dd)
+#Show output
+summary(model_shuffle)
 
 ######## We make a table woth significant coefficients ###########
 sum <- summary(model_shuffle)
 output <- as.data.frame(sum$coefficients)
 sig_output <- subset(output, output$`Pr(>|t|)` < 0.05)
 sig_output <- round(sig_output, 2)
-#Making a column for nice read
-sig_output$p_value <- ">0.01"
-
 
 #Also run it with the star * so we can see whether the interaction is there
+
 
 model_shuffle_s <- lmer(HR_change_self ~ 0 + condition + 
                 ((HR_self_past + HR_other_past)*condition)*pair + 
                 (0 + condition | participant) +
                 (0 + condition | group), data = dd)
+#Show output
+summary(model_shuffle_s)
+######## We make a table woth significant coefficients ###########
 sum <- summary(model_shuffle_s)
 output <- as.data.frame(sum$coefficients)
 sig_output <- subset(output, output$`Pr(>|t|)` < 0.05)
@@ -719,15 +644,53 @@ sig_output <- round(sig_output, 2)
 sig_output$p_value <- ">0.01"
 sig_output[2, 6] <- ">0.05"
 
-#I get no p values
-summary(model_shuffle)
-summary(model_shuffle_s)
+#We relevel to get shuffle pair as baseline
+dd$pair <- as.factor(dd$pair)
+dd$pair <- ordered(dd$pair, levels = c("shuffle", "real"))
+levels(dd$pair)
+#Model with 1 and releveled
+model_shuffle_s_1 <- lmer(HR_change_self ~ 1 + condition + 
+                ((HR_self_past + HR_other_past)*condition)*pair + 
+                (1 + condition | participant) +
+                (1 + condition | group), data = dd)
+#We get the output
+summary(model_shuffle_s_1)
+######## We make a table woth significant coefficients ###########
+sum <- summary(model_shuffle_s_1)
+output <- as.data.frame(sum$coefficients)
+sig_output <- subset(output, output$`Pr(>|t|)` < 0.05)
+sig_output <- round(sig_output, 2)
+#Making a column for nice read
+sig_output$p_value <- ">0.01"
+sig_output[2, 6] <- ">0.05"
+```
 
+
+```{r, include = FALSE}
+#Visualizations to interpret results
+ggplot(dd, aes(x = HR_self_past, y = HR_other_past, color = pair)) + geom_smooth(method = "lm")
+
+
+ggplot(dd, aes(x = HR_change_self)) + 
+  geom_smooth(aes(y = HR_self_past, color = pair), method ="lm") 
+
+ggplot(dd, aes(x = HR_change_self)) + 
+  geom_smooth(aes(y = HR_other_past, color = pair), method = "lm")
+
+
+
+ggplot(dd, aes(x = HR_change_self)) + 
+  geom_smooth(aes(y = HR_self_past, color = condition), method ="lm") 
+
+ggplot(dd, aes(x = HR_change_self)) + 
+  geom_smooth(aes(y = HR_other_past, color = condition), method = "lm")
 
 ```
+
+
+
  
- 
-### TRICKY! Creating controls: surrogate pair controls
+### Creating controls: surrogate pair controls
  - Per each real pair, identify at least one surrogate pair (matching one of the participants, with somebody doing the same task, but in a different pair)
 
 ```{r}
@@ -824,6 +787,9 @@ model_su <- lmer(HR_change_self ~ 0 + condition +
                 ((HR_self_past + HR_other_past):condition):type + 
                 (0 + condition | participant) +
                 (0 + condition | group), data = dd_surro)
+#MOdel output
+summary(model_su)
+######## We make a table woth significant coefficients ###########
 sum <- summary(model_su)
 output <- as.data.frame(sum$coefficients)
 output <- round(output, 2)
@@ -831,8 +797,6 @@ output <- round(output, 2)
 sig_output <- subset(output, output$`Pr(>|t|)` < 0.05)
 sig_output$p_value <- ">0.01"
 sig_output[7, 6] <- ">0.05"
-sum
-
 
 #Also run it with the star * so we can see whether the interaction is there
 
@@ -840,7 +804,9 @@ model_su_s <- lmer(HR_change_self ~ 0 + condition +
                 ((HR_self_past + HR_other_past)*condition)*type + 
                 (0 + condition | participant) +
                 (0 + condition | group), data = dd_surro)
-
+#Output
+summary(model_su_s)
+######## We make a table with significant coefficients ###########
 sum_2 <- summary(model_su_s)
 output_2 <- as.data.frame(sum_2$coefficients)
 sig_output_2 <- subset(output_2, output_2$`Pr(>|t|)` < 0.05)
@@ -848,19 +814,31 @@ sig_output_2 <- round(sig_output_2, 2)
 #We want to show only the significant
 sig_output_2$p_value <- ">0.01"
 sig_output_2[2:4, 6] <- ">0.05"
-sum_2
 
-# 0 + (condition + (HR_s + HR_o):Condition):type
-#For conversation the coupling parameter is probably different
-
-
-
+#The model with 1 as the intercept
+model_su_s_1 <- lmer(HR_change_self ~ 1 + condition + 
+                ((HR_self_past + HR_other_past)*condition)*type + 
+                (1 + condition | participant) +
+                (1 + condition | group), data = dd_surro)
+#The output
+summary(model_su_s_1)
+######## We make a table with significant coefficients ###########
+sum_2 <- summary(model_su_s_1)
+summary(model_su_s_1)
+output_2 <- as.data.frame(sum_2$coefficients)
+sig_output_2 <- subset(output_2, output_2$`Pr(>|t|)` < 0.05)
+sig_output_2 <- round(sig_output_2, 2)
+#We want to show only the significant
+sig_output_2$p_value <- ">0.01"
+sig_output_2[2:4, 6] <- ">0.05"
 ```
- 
 
-### Effects of respiration coordination on heart rate coordination
- - describe how you would test those.
- - Optional: run the models and report them
+```{r, include=FALSE}
+#Interpretation visualization
+ggplot(dd_surro, aes(x = HR_change_self, fill = type)) + 
+  geom_smooth(aes(y = HR_self_past, color = condition), method ="lm") #+ 
+  #geom_smooth(aes(y = HR_self_past, color = type), method = "lm")
+```
 
  Link to the assignment docs:
  https://github.com/katrinenymann/Assignment_4.git 
