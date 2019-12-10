@@ -1,7 +1,7 @@
 ---
 title: "Assignment 4 - Heart rate, respiration and interpersonal coordination"
-author: "Katrine Nymann"
-date: "November 20, 2019"
+author: "Studygroup 6: Nanna, Stine F.H., Bianka R., Helene and Katrine"
+date: "December 05, 2019"
 output: 
   md_document:
     variant: markdown_github
@@ -551,33 +551,50 @@ model_c <- lmer(HR_change_self ~ 0 + condition +
                 (0 + condition | participant) +
                 (0 + condition | group), data = dd)
 
+sum <- summary(model_c)
+output <- as.data.frame(sum$coefficients)
+sig_output <- subset(output, output$`Pr(>|t|)` < 0.05)
+sig_output <- round(sig_output, 2)
+#Making a column for nice read
+sig_output$p_value <- ">0.01"
+sum
+
 #Also run it with the star * so we can see whether the interaction is there
 
-model_s <- lmer(HR_change_self ~ 0 + condition + 
+model_s <- lmer(HR_change_self ~ 0 +
                 (HR_self_past + HR_other_past)*condition + 
                 (0 + condition | participant) +
                 (0 + condition | group), data = dd)
 summary(model_s)
-#Here we get significant conditionSynchronous:HR_self_past, conditionSynchronous:HR_other_past  and conditionTurnTaking:HR_other_past
 
-# We want to look at coupling for conditionSynchronous:HR_other_past  and conditionTurnTaking:HR_other_past
-
-# We make the model with 1 +
-model_s_1 <- lmer(HR_change_self ~ 1 + condition + 
-                (HR_self_past + HR_other_past)*condition + 
-                (1 + condition | participant) +
-                (1 + condition | group), data = dd)
-summary(model_s_1)
-
-
-############ We make a nice output for interpretation ########3
 sum <- summary(model_s)
 output <- as.data.frame(sum$coefficients)
 sig_output <- subset(output, output$`Pr(>|t|)` < 0.05)
 sig_output <- round(sig_output, 2)
 #Making a column for nice read
 sig_output$p_value <- ">0.01"
-sig_output[2, 6] <- ">0.05"
+
+#Making a column for nice read
+sig_output$p_value <- ">0.01"
+#Here we get significant conditionSynchronous:HR_self_past, conditionSynchronous:HR_other_past  and conditionTurnTaking:HR_other_past
+
+# We want to look at coupling for conditionSynchronous:HR_other_past  and conditionTurnTaking:HR_other_past
+
+# We make the model with 1 +
+model_s_1 <- lmer(HR_change_self ~ 1 +
+                (HR_self_past + HR_other_past)*condition + 
+                (1 + condition | participant) +
+                (1 + condition | group), data = dd)
+summary(model_s_1)
+
+############ We make a nice output for interpretation ########3
+sum <- summary(model_s_1)
+output <- as.data.frame(sum$coefficients)
+sig_output <- subset(output, output$`Pr(>|t|)` < 0.05)
+sig_output <- round(sig_output, 2)
+#Making a column for nice read
+sig_output$p_value <- ">0.01"
+
 
 #I get no p values
 summary(model_c)
@@ -629,7 +646,7 @@ sig_output <- round(sig_output, 2)
 #Also run it with the star * so we can see whether the interaction is there
 
 
-model_shuffle_s <- lmer(HR_change_self ~ 0 + condition + 
+model_shuffle_s <- lmer(HR_change_self ~ 0 + 
                 ((HR_self_past + HR_other_past)*condition)*pair + 
                 (0 + condition | participant) +
                 (0 + condition | group), data = dd)
@@ -649,7 +666,7 @@ dd$pair <- as.factor(dd$pair)
 dd$pair <- ordered(dd$pair, levels = c("shuffle", "real"))
 levels(dd$pair)
 #Model with 1 and releveled
-model_shuffle_s_1 <- lmer(HR_change_self ~ 1 + condition + 
+model_shuffle_s_1 <- lmer(HR_change_self ~ 1 +
                 ((HR_self_past + HR_other_past)*condition)*pair + 
                 (1 + condition | participant) +
                 (1 + condition | group), data = dd)
@@ -662,7 +679,7 @@ sig_output <- subset(output, output$`Pr(>|t|)` < 0.05)
 sig_output <- round(sig_output, 2)
 #Making a column for nice read
 sig_output$p_value <- ">0.01"
-sig_output[2, 6] <- ">0.05"
+sig_output[3, 6] <- ">0.05"
 ```
 
 
@@ -800,7 +817,7 @@ sig_output[7, 6] <- ">0.05"
 
 #Also run it with the star * so we can see whether the interaction is there
 
-model_su_s <- lmer(HR_change_self ~ 0 + condition + 
+model_su_s <- lmer(HR_change_self ~ 0 + 
                 ((HR_self_past + HR_other_past)*condition)*type + 
                 (0 + condition | participant) +
                 (0 + condition | group), data = dd_surro)
@@ -816,7 +833,7 @@ sig_output_2$p_value <- ">0.01"
 sig_output_2[2:4, 6] <- ">0.05"
 
 #The model with 1 as the intercept
-model_su_s_1 <- lmer(HR_change_self ~ 1 + condition + 
+model_su_s_1 <- lmer(HR_change_self ~ 1 + 
                 ((HR_self_past + HR_other_past)*condition)*type + 
                 (1 + condition | participant) +
                 (1 + condition | group), data = dd_surro)
@@ -842,3 +859,8 @@ ggplot(dd_surro, aes(x = HR_change_self, fill = type)) +
 
  Link to the assignment docs:
  https://github.com/katrinenymann/Assignment_4.git 
+ 
+ 
+ 
+ Link to report:
+ https://docs.google.com/document/d/1b0ZuINvKAYYAEFEWlRaA4D8qe8CBwRsGBXzqboSwsJM/edit?usp=sharing 

@@ -644,28 +644,20 @@ model_c <- lmer(HR_change_self ~ 0 + condition +
     ## boundary (singular) fit: see ?isSingular
 
 ``` r
-#Also run it with the star * so we can see whether the interaction is there
-
-model_s <- lmer(HR_change_self ~ 0 + condition + 
-                (HR_self_past + HR_other_past)*condition + 
-                (0 + condition | participant) +
-                (0 + condition | group), data = dd)
-```
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Warning: Model failed to converge with 1 negative eigenvalue: -1.2e+02
-
-``` r
-summary(model_s)
+sum <- summary(model_c)
+output <- as.data.frame(sum$coefficients)
+sig_output <- subset(output, output$`Pr(>|t|)` < 0.05)
+sig_output <- round(sig_output, 2)
+#Making a column for nice read
+sig_output$p_value <- ">0.01"
+sum
 ```
 
     ## Linear mixed model fit by REML. t-tests use Satterthwaite's method [
     ## lmerModLmerTest]
     ## Formula: 
-    ## HR_change_self ~ 0 + condition + (HR_self_past + HR_other_past) *  
-    ##     condition + (0 + condition | participant) + (0 + condition |  
-    ##     group)
+    ## HR_change_self ~ 0 + condition + (HR_self_past + HR_other_past):condition +  
+    ##     (0 + condition | participant) + (0 + condition | group)
     ##    Data: dd
     ## 
     ## REML criterion at convergence: 18430.4
@@ -676,68 +668,162 @@ summary(model_s)
     ## 
     ## Random effects:
     ##  Groups      Name                  Variance  Std.Dev.  Corr       
-    ##  participant conditionConversation 2.492e-10 1.579e-05            
-    ##              conditionSynchronous  9.463e-12 3.076e-06 -1.00      
-    ##              conditionTurnTaking   1.947e-10 1.395e-05  1.00 -1.00
+    ##  participant conditionConversation 0.000e+00 0.000e+00            
+    ##              conditionSynchronous  1.606e-09 4.008e-05   NaN      
+    ##              conditionTurnTaking   1.142e-10 1.069e-05   NaN -0.99
     ##  group       conditionConversation 0.000e+00 0.000e+00            
-    ##              conditionSynchronous  1.399e-11 3.741e-06   NaN      
-    ##              conditionTurnTaking   2.072e-10 1.440e-05   NaN -0.54
+    ##              conditionSynchronous  2.742e-11 5.236e-06   NaN      
+    ##              conditionTurnTaking   1.758e-09 4.193e-05   NaN -0.05
     ##  Residual                          5.935e-01 7.704e-01            
     ## Number of obs: 7936, groups:  participant, 16; group, 8
     ## 
     ## Fixed effects:
-    ##                                      Estimate Std. Error         df
-    ## conditionConversation               4.496e-03  1.435e-02  7.927e+03
-    ## conditionSynchronous                5.955e-03  1.593e-02  7.927e+03
-    ## conditionTurnTaking                 1.662e-03  1.478e-02  7.924e+03
-    ## HR_self_past                       -3.632e-01  1.444e-02  7.927e+03
-    ## HR_other_past                       1.578e-02  1.444e-02  7.927e+03
-    ## conditionSynchronous:HR_self_past  -4.549e-02  2.156e-02  7.927e+03
-    ## conditionTurnTaking:HR_self_past    1.407e-02  2.071e-02  7.927e+03
-    ## conditionSynchronous:HR_other_past -9.474e-03  2.156e-02  7.927e+03
-    ## conditionTurnTaking:HR_other_past  -3.502e-02  2.071e-02  7.927e+03
-    ##                                    t value Pr(>|t|)    
-    ## conditionConversation                0.313   0.7541    
-    ## conditionSynchronous                 0.374   0.7085    
-    ## conditionTurnTaking                  0.112   0.9105    
-    ## HR_self_past                       -25.155   <2e-16 ***
-    ## HR_other_past                        1.093   0.2743    
-    ## conditionSynchronous:HR_self_past   -2.111   0.0348 *  
-    ## conditionTurnTaking:HR_self_past     0.680   0.4967    
-    ## conditionSynchronous:HR_other_past  -0.440   0.6603    
-    ## conditionTurnTaking:HR_other_past   -1.691   0.0908 .  
+    ##                                       Estimate Std. Error         df
+    ## conditionConversation                4.496e-03  1.435e-02  7.927e+03
+    ## conditionSynchronous                 5.955e-03  1.593e-02  7.922e+03
+    ## conditionTurnTaking                  1.662e-03  1.478e-02  7.907e+03
+    ## conditionConversation:HR_self_past  -3.632e-01  1.444e-02  7.927e+03
+    ## conditionSynchronous:HR_self_past   -4.086e-01  1.601e-02  7.927e+03
+    ## conditionTurnTaking:HR_self_past    -3.491e-01  1.484e-02  7.927e+03
+    ## conditionConversation:HR_other_past  1.578e-02  1.444e-02  7.927e+03
+    ## conditionSynchronous:HR_other_past   6.309e-03  1.601e-02  7.927e+03
+    ## conditionTurnTaking:HR_other_past   -1.923e-02  1.484e-02  7.927e+03
+    ##                                     t value Pr(>|t|)    
+    ## conditionConversation                 0.313    0.754    
+    ## conditionSynchronous                  0.374    0.708    
+    ## conditionTurnTaking                   0.112    0.910    
+    ## conditionConversation:HR_self_past  -25.155   <2e-16 ***
+    ## conditionSynchronous:HR_self_past   -25.531   <2e-16 ***
+    ## conditionTurnTaking:HR_self_past    -23.520   <2e-16 ***
+    ## conditionConversation:HR_other_past   1.093    0.274    
+    ## conditionSynchronous:HR_other_past    0.394    0.693    
+    ## conditionTurnTaking:HR_other_past    -1.296    0.195    
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ## Correlation of Fixed Effects:
-    ##                     cndtnC cndtnS cndtTT HR_sl_ HR_th_ cndtnSynchrns:HR_s_
-    ## cndtnSynchr          0.000                                                
-    ## cndtnTrnTkn          0.000  0.000                                         
-    ## HR_self_pst          0.002  0.000  0.000                                  
-    ## HR_othr_pst          0.002  0.000  0.000 -0.076                           
-    ## cndtnSynchrns:HR_s_ -0.001  0.002  0.000 -0.670  0.051                    
-    ## cndtnTrnTkng:HR_s_  -0.001  0.000 -0.003 -0.697  0.053  0.467             
-    ## cndtnSynchrns:HR_t_ -0.001  0.002  0.000  0.051 -0.670 -0.065             
-    ## cndtnTrnTkng:HR_t_  -0.001  0.000 -0.003  0.053 -0.697 -0.035             
-    ##                     cndtnTrnTkng:HR_s_ cndtnSynchrns:HR_t_
+    ##                     cndtnC cndtnS cndtTT cndtnCnvrstn:HR_s_
+    ## cndtnSynchr          0.000                                 
+    ## cndtnTrnTkn          0.000  0.000                          
+    ## cndtnCnvrstn:HR_s_   0.002  0.000  0.000                   
+    ## cndtnSynchrns:HR_s_  0.000  0.002  0.000  0.000            
+    ## cndtnTrnTkng:HR_s_   0.000  0.000 -0.004  0.000            
+    ## cndtnCnvrstn:HR_t_   0.002  0.000  0.000 -0.076            
+    ## cndtnSynchrns:HR_t_  0.000  0.002  0.000  0.000            
+    ## cndtnTrnTkng:HR_t_   0.000  0.000 -0.004  0.000            
+    ##                     cndtnSynchrns:HR_s_ cndtnTrnTkng:HR_s_
     ## cndtnSynchr                                               
     ## cndtnTrnTkn                                               
-    ## HR_self_pst                                               
-    ## HR_othr_pst                                               
+    ## cndtnCnvrstn:HR_s_                                        
+    ## cndtnSynchrns:HR_s_                                       
+    ## cndtnTrnTkng:HR_s_   0.000                                
+    ## cndtnCnvrstn:HR_t_   0.000               0.000            
+    ## cndtnSynchrns:HR_t_ -0.056               0.000            
+    ## cndtnTrnTkng:HR_t_   0.000              -0.007            
+    ##                     cndtnCnvrstn:HR_t_ cndtnSynchrns:HR_t_
+    ## cndtnSynchr                                               
+    ## cndtnTrnTkn                                               
+    ## cndtnCnvrstn:HR_s_                                        
     ## cndtnSynchrns:HR_s_                                       
     ## cndtnTrnTkng:HR_s_                                        
-    ## cndtnSynchrns:HR_t_ -0.035                                
-    ## cndtnTrnTkng:HR_t_  -0.040              0.467             
+    ## cndtnCnvrstn:HR_t_                                        
+    ## cndtnSynchrns:HR_t_  0.000                                
+    ## cndtnTrnTkng:HR_t_   0.000              0.000             
     ## convergence code: 0
     ## boundary (singular) fit: see ?isSingular
 
 ``` r
+#Also run it with the star * so we can see whether the interaction is there
+
+model_s <- lmer(HR_change_self ~ 0 +
+                (HR_self_past + HR_other_past)*condition + 
+                (0 + condition | participant) +
+                (0 + condition | group), data = dd)
+```
+
+    ## boundary (singular) fit: see ?isSingular
+
+``` r
+summary(model_s)
+```
+
+    ## Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+    ## lmerModLmerTest]
+    ## Formula: 
+    ## HR_change_self ~ 0 + (HR_self_past + HR_other_past) * condition +  
+    ##     (0 + condition | participant) + (0 + condition | group)
+    ##    Data: dd
+    ## 
+    ## REML criterion at convergence: 18430.4
+    ## 
+    ## Scaled residuals: 
+    ##     Min      1Q  Median      3Q     Max 
+    ## -6.4986 -0.4853  0.0755  0.5500  5.8691 
+    ## 
+    ## Random effects:
+    ##  Groups      Name                  Variance  Std.Dev.  Corr     
+    ##  participant conditionConversation 0.000e+00 0.000e+00          
+    ##              conditionSynchronous  1.083e-10 1.041e-05  NaN     
+    ##              conditionTurnTaking   3.795e-10 1.948e-05  NaN 0.23
+    ##  group       conditionConversation 0.000e+00 0.000e+00          
+    ##              conditionSynchronous  5.049e-12 2.247e-06  NaN     
+    ##              conditionTurnTaking   3.178e-11 5.638e-06  NaN 0.50
+    ##  Residual                          5.935e-01 7.704e-01          
+    ## Number of obs: 7936, groups:  participant, 16; group, 8
+    ## 
+    ## Fixed effects:
+    ##                                      Estimate Std. Error         df
+    ## HR_self_past                       -3.632e-01  1.444e-02  7.927e+03
+    ## HR_other_past                       1.578e-02  1.444e-02  7.927e+03
+    ## conditionConversation               4.496e-03  1.435e-02  7.927e+03
+    ## conditionSynchronous                5.955e-03  1.593e-02  7.927e+03
+    ## conditionTurnTaking                 1.662e-03  1.478e-02  7.926e+03
+    ## HR_self_past:conditionSynchronous  -4.549e-02  2.156e-02  7.927e+03
+    ## HR_self_past:conditionTurnTaking    1.407e-02  2.071e-02  7.927e+03
+    ## HR_other_past:conditionSynchronous -9.474e-03  2.156e-02  7.927e+03
+    ## HR_other_past:conditionTurnTaking  -3.502e-02  2.071e-02  7.927e+03
+    ##                                    t value Pr(>|t|)    
+    ## HR_self_past                       -25.155   <2e-16 ***
+    ## HR_other_past                        1.093   0.2743    
+    ## conditionConversation                0.313   0.7541    
+    ## conditionSynchronous                 0.374   0.7085    
+    ## conditionTurnTaking                  0.112   0.9105    
+    ## HR_self_past:conditionSynchronous   -2.111   0.0348 *  
+    ## HR_self_past:conditionTurnTaking     0.680   0.4967    
+    ## HR_other_past:conditionSynchronous  -0.440   0.6603    
+    ## HR_other_past:conditionTurnTaking   -1.691   0.0908 .  
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Correlation of Fixed Effects:
+    ##             HR_sl_ HR_th_ cndtnC cndtnS cndtTT HR_s_:S HR_s_:TT HR_t_:S
+    ## HR_othr_pst -0.076                                                     
+    ## cndtnCnvrst  0.002  0.002                                              
+    ## cndtnSynchr  0.000  0.000  0.000                                       
+    ## cndtnTrnTkn  0.000  0.000  0.000  0.000                                
+    ## HR_slf_ps:S -0.670  0.051 -0.001  0.002  0.000                         
+    ## HR_slf_p:TT -0.697  0.053 -0.001  0.000 -0.003  0.467                  
+    ## HR_thr_ps:S  0.051 -0.670 -0.001  0.002  0.000 -0.065  -0.035          
+    ## HR_thr_p:TT  0.053 -0.697 -0.001  0.000 -0.003 -0.035  -0.040    0.467 
+    ## convergence code: 0
+    ## boundary (singular) fit: see ?isSingular
+
+``` r
+sum <- summary(model_s)
+output <- as.data.frame(sum$coefficients)
+sig_output <- subset(output, output$`Pr(>|t|)` < 0.05)
+sig_output <- round(sig_output, 2)
+#Making a column for nice read
+sig_output$p_value <- ">0.01"
+
+#Making a column for nice read
+sig_output$p_value <- ">0.01"
 #Here we get significant conditionSynchronous:HR_self_past, conditionSynchronous:HR_other_past  and conditionTurnTaking:HR_other_past
 
 # We want to look at coupling for conditionSynchronous:HR_other_past  and conditionTurnTaking:HR_other_past
 
 # We make the model with 1 +
-model_s_1 <- lmer(HR_change_self ~ 1 + condition + 
+model_s_1 <- lmer(HR_change_self ~ 1 +
                 (HR_self_past + HR_other_past)*condition + 
                 (1 + condition | participant) +
                 (1 + condition | group), data = dd)
@@ -752,9 +838,8 @@ summary(model_s_1)
     ## Linear mixed model fit by REML. t-tests use Satterthwaite's method [
     ## lmerModLmerTest]
     ## Formula: 
-    ## HR_change_self ~ 1 + condition + (HR_self_past + HR_other_past) *  
-    ##     condition + (1 + condition | participant) + (1 + condition |  
-    ##     group)
+    ## HR_change_self ~ 1 + (HR_self_past + HR_other_past) * condition +  
+    ##     (1 + condition | participant) + (1 + condition | group)
     ##    Data: dd
     ## 
     ## REML criterion at convergence: 18430.4
@@ -764,71 +849,62 @@ summary(model_s_1)
     ## -6.4986 -0.4853  0.0755  0.5500  5.8691 
     ## 
     ## Random effects:
-    ##  Groups      Name                 Variance  Std.Dev.  Corr     
-    ##  participant (Intercept)          0.000e+00 0.000e+00          
-    ##              conditionSynchronous 3.622e-11 6.019e-06  NaN     
-    ##              conditionTurnTaking  2.325e-10 1.525e-05  NaN 0.65
-    ##  group       (Intercept)          0.000e+00 0.000e+00          
-    ##              conditionSynchronous 8.005e-12 2.829e-06  NaN     
-    ##              conditionTurnTaking  4.722e-10 2.173e-05  NaN 0.43
-    ##  Residual                         5.935e-01 7.704e-01          
+    ##  Groups      Name                 Variance  Std.Dev.  Corr       
+    ##  participant (Intercept)          0.000e+00 0.000e+00            
+    ##              conditionSynchronous 1.096e-12 1.047e-06   NaN      
+    ##              conditionTurnTaking  2.545e-10 1.595e-05   NaN -0.18
+    ##  group       (Intercept)          8.820e-10 2.970e-05            
+    ##              conditionSynchronous 3.129e-09 5.594e-05 -1.00      
+    ##              conditionTurnTaking  6.354e-10 2.521e-05 -0.97  0.97
+    ##  Residual                         5.935e-01 7.704e-01            
     ## Number of obs: 7936, groups:  participant, 16; group, 8
     ## 
     ## Fixed effects:
     ##                                      Estimate Std. Error         df
-    ## (Intercept)                         4.496e-03  1.435e-02  7.927e+03
-    ## conditionSynchronous                1.459e-03  2.144e-02  7.927e+03
-    ## conditionTurnTaking                -2.834e-03  2.060e-02  7.925e+03
+    ## (Intercept)                         4.496e-03  1.435e-02  7.919e+03
     ## HR_self_past                       -3.632e-01  1.444e-02  7.927e+03
     ## HR_other_past                       1.578e-02  1.444e-02  7.927e+03
-    ## conditionSynchronous:HR_self_past  -4.549e-02  2.156e-02  7.927e+03
-    ## conditionTurnTaking:HR_self_past    1.407e-02  2.071e-02  7.927e+03
-    ## conditionSynchronous:HR_other_past -9.474e-03  2.156e-02  7.927e+03
-    ## conditionTurnTaking:HR_other_past  -3.502e-02  2.071e-02  7.927e+03
+    ## conditionSynchronous                1.459e-03  2.144e-02  7.912e+03
+    ## conditionTurnTaking                -2.834e-03  2.060e-02  7.924e+03
+    ## HR_self_past:conditionSynchronous  -4.549e-02  2.156e-02  7.927e+03
+    ## HR_self_past:conditionTurnTaking    1.407e-02  2.071e-02  7.927e+03
+    ## HR_other_past:conditionSynchronous -9.474e-03  2.156e-02  7.927e+03
+    ## HR_other_past:conditionTurnTaking  -3.502e-02  2.071e-02  7.927e+03
     ##                                    t value Pr(>|t|)    
     ## (Intercept)                          0.313   0.7541    
-    ## conditionSynchronous                 0.068   0.9458    
-    ## conditionTurnTaking                 -0.138   0.8906    
     ## HR_self_past                       -25.155   <2e-16 ***
     ## HR_other_past                        1.093   0.2743    
-    ## conditionSynchronous:HR_self_past   -2.111   0.0348 *  
-    ## conditionTurnTaking:HR_self_past     0.680   0.4967    
-    ## conditionSynchronous:HR_other_past  -0.440   0.6603    
-    ## conditionTurnTaking:HR_other_past   -1.691   0.0908 .  
+    ## conditionSynchronous                 0.068   0.9458    
+    ## conditionTurnTaking                 -0.138   0.8906    
+    ## HR_self_past:conditionSynchronous   -2.111   0.0348 *  
+    ## HR_self_past:conditionTurnTaking     0.680   0.4967    
+    ## HR_other_past:conditionSynchronous  -0.440   0.6603    
+    ## HR_other_past:conditionTurnTaking   -1.691   0.0908 .  
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ## Correlation of Fixed Effects:
-    ##                     (Intr) cndtnS cndtTT HR_sl_ HR_th_ cndtnSynchrns:HR_s_
-    ## cndtnSynchr         -0.670                                                
-    ## cndtnTrnTkn         -0.697  0.466                                         
-    ## HR_self_pst          0.002 -0.001 -0.001                                  
-    ## HR_othr_pst          0.002 -0.001 -0.001 -0.076                           
-    ## cndtnSynchrns:HR_s_ -0.001  0.002  0.001 -0.670  0.051                    
-    ## cndtnTrnTkng:HR_s_  -0.001  0.001 -0.001 -0.697  0.053  0.467             
-    ## cndtnSynchrns:HR_t_ -0.001  0.002  0.001  0.051 -0.670 -0.065             
-    ## cndtnTrnTkng:HR_t_  -0.001  0.001 -0.001  0.053 -0.697 -0.035             
-    ##                     cndtnTrnTkng:HR_s_ cndtnSynchrns:HR_t_
-    ## cndtnSynchr                                               
-    ## cndtnTrnTkn                                               
-    ## HR_self_pst                                               
-    ## HR_othr_pst                                               
-    ## cndtnSynchrns:HR_s_                                       
-    ## cndtnTrnTkng:HR_s_                                        
-    ## cndtnSynchrns:HR_t_ -0.035                                
-    ## cndtnTrnTkng:HR_t_  -0.040              0.467             
+    ##             (Intr) HR_sl_ HR_th_ cndtnS cndtTT HR_s_:S HR_s_:TT HR_t_:S
+    ## HR_self_pst  0.002                                                     
+    ## HR_othr_pst  0.002 -0.076                                              
+    ## cndtnSynchr -0.670 -0.001 -0.001                                       
+    ## cndtnTrnTkn -0.697 -0.001 -0.001  0.466                                
+    ## HR_slf_ps:S -0.001 -0.670  0.051  0.002  0.001                         
+    ## HR_slf_p:TT -0.001 -0.697  0.053  0.001 -0.001  0.467                  
+    ## HR_thr_ps:S -0.001  0.051 -0.670  0.002  0.001 -0.065  -0.035          
+    ## HR_thr_p:TT -0.001  0.053 -0.697  0.001 -0.001 -0.035  -0.040    0.467 
     ## convergence code: 0
     ## boundary (singular) fit: see ?isSingular
 
 ``` r
 ############ We make a nice output for interpretation ########3
-sum <- summary(model_s)
+sum <- summary(model_s_1)
 output <- as.data.frame(sum$coefficients)
 sig_output <- subset(output, output$`Pr(>|t|)` < 0.05)
 sig_output <- round(sig_output, 2)
 #Making a column for nice read
 sig_output$p_value <- ">0.01"
-sig_output[2, 6] <- ">0.05"
+
 
 #I get no p values
 summary(model_c)
@@ -920,9 +996,8 @@ summary(model_s)
     ## Linear mixed model fit by REML. t-tests use Satterthwaite's method [
     ## lmerModLmerTest]
     ## Formula: 
-    ## HR_change_self ~ 0 + condition + (HR_self_past + HR_other_past) *  
-    ##     condition + (0 + condition | participant) + (0 + condition |  
-    ##     group)
+    ## HR_change_self ~ 0 + (HR_self_past + HR_other_past) * condition +  
+    ##     (0 + condition | participant) + (0 + condition | group)
     ##    Data: dd
     ## 
     ## REML criterion at convergence: 18430.4
@@ -932,59 +1007,50 @@ summary(model_s)
     ## -6.4986 -0.4853  0.0755  0.5500  5.8691 
     ## 
     ## Random effects:
-    ##  Groups      Name                  Variance  Std.Dev.  Corr       
-    ##  participant conditionConversation 2.492e-10 1.579e-05            
-    ##              conditionSynchronous  9.463e-12 3.076e-06 -1.00      
-    ##              conditionTurnTaking   1.947e-10 1.395e-05  1.00 -1.00
-    ##  group       conditionConversation 0.000e+00 0.000e+00            
-    ##              conditionSynchronous  1.399e-11 3.741e-06   NaN      
-    ##              conditionTurnTaking   2.072e-10 1.440e-05   NaN -0.54
-    ##  Residual                          5.935e-01 7.704e-01            
+    ##  Groups      Name                  Variance  Std.Dev.  Corr     
+    ##  participant conditionConversation 0.000e+00 0.000e+00          
+    ##              conditionSynchronous  1.083e-10 1.041e-05  NaN     
+    ##              conditionTurnTaking   3.795e-10 1.948e-05  NaN 0.23
+    ##  group       conditionConversation 0.000e+00 0.000e+00          
+    ##              conditionSynchronous  5.049e-12 2.247e-06  NaN     
+    ##              conditionTurnTaking   3.178e-11 5.638e-06  NaN 0.50
+    ##  Residual                          5.935e-01 7.704e-01          
     ## Number of obs: 7936, groups:  participant, 16; group, 8
     ## 
     ## Fixed effects:
     ##                                      Estimate Std. Error         df
-    ## conditionConversation               4.496e-03  1.435e-02  7.927e+03
-    ## conditionSynchronous                5.955e-03  1.593e-02  7.927e+03
-    ## conditionTurnTaking                 1.662e-03  1.478e-02  7.924e+03
     ## HR_self_past                       -3.632e-01  1.444e-02  7.927e+03
     ## HR_other_past                       1.578e-02  1.444e-02  7.927e+03
-    ## conditionSynchronous:HR_self_past  -4.549e-02  2.156e-02  7.927e+03
-    ## conditionTurnTaking:HR_self_past    1.407e-02  2.071e-02  7.927e+03
-    ## conditionSynchronous:HR_other_past -9.474e-03  2.156e-02  7.927e+03
-    ## conditionTurnTaking:HR_other_past  -3.502e-02  2.071e-02  7.927e+03
+    ## conditionConversation               4.496e-03  1.435e-02  7.927e+03
+    ## conditionSynchronous                5.955e-03  1.593e-02  7.927e+03
+    ## conditionTurnTaking                 1.662e-03  1.478e-02  7.926e+03
+    ## HR_self_past:conditionSynchronous  -4.549e-02  2.156e-02  7.927e+03
+    ## HR_self_past:conditionTurnTaking    1.407e-02  2.071e-02  7.927e+03
+    ## HR_other_past:conditionSynchronous -9.474e-03  2.156e-02  7.927e+03
+    ## HR_other_past:conditionTurnTaking  -3.502e-02  2.071e-02  7.927e+03
     ##                                    t value Pr(>|t|)    
+    ## HR_self_past                       -25.155   <2e-16 ***
+    ## HR_other_past                        1.093   0.2743    
     ## conditionConversation                0.313   0.7541    
     ## conditionSynchronous                 0.374   0.7085    
     ## conditionTurnTaking                  0.112   0.9105    
-    ## HR_self_past                       -25.155   <2e-16 ***
-    ## HR_other_past                        1.093   0.2743    
-    ## conditionSynchronous:HR_self_past   -2.111   0.0348 *  
-    ## conditionTurnTaking:HR_self_past     0.680   0.4967    
-    ## conditionSynchronous:HR_other_past  -0.440   0.6603    
-    ## conditionTurnTaking:HR_other_past   -1.691   0.0908 .  
+    ## HR_self_past:conditionSynchronous   -2.111   0.0348 *  
+    ## HR_self_past:conditionTurnTaking     0.680   0.4967    
+    ## HR_other_past:conditionSynchronous  -0.440   0.6603    
+    ## HR_other_past:conditionTurnTaking   -1.691   0.0908 .  
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ## Correlation of Fixed Effects:
-    ##                     cndtnC cndtnS cndtTT HR_sl_ HR_th_ cndtnSynchrns:HR_s_
-    ## cndtnSynchr          0.000                                                
-    ## cndtnTrnTkn          0.000  0.000                                         
-    ## HR_self_pst          0.002  0.000  0.000                                  
-    ## HR_othr_pst          0.002  0.000  0.000 -0.076                           
-    ## cndtnSynchrns:HR_s_ -0.001  0.002  0.000 -0.670  0.051                    
-    ## cndtnTrnTkng:HR_s_  -0.001  0.000 -0.003 -0.697  0.053  0.467             
-    ## cndtnSynchrns:HR_t_ -0.001  0.002  0.000  0.051 -0.670 -0.065             
-    ## cndtnTrnTkng:HR_t_  -0.001  0.000 -0.003  0.053 -0.697 -0.035             
-    ##                     cndtnTrnTkng:HR_s_ cndtnSynchrns:HR_t_
-    ## cndtnSynchr                                               
-    ## cndtnTrnTkn                                               
-    ## HR_self_pst                                               
-    ## HR_othr_pst                                               
-    ## cndtnSynchrns:HR_s_                                       
-    ## cndtnTrnTkng:HR_s_                                        
-    ## cndtnSynchrns:HR_t_ -0.035                                
-    ## cndtnTrnTkng:HR_t_  -0.040              0.467             
+    ##             HR_sl_ HR_th_ cndtnC cndtnS cndtTT HR_s_:S HR_s_:TT HR_t_:S
+    ## HR_othr_pst -0.076                                                     
+    ## cndtnCnvrst  0.002  0.002                                              
+    ## cndtnSynchr  0.000  0.000  0.000                                       
+    ## cndtnTrnTkn  0.000  0.000  0.000  0.000                                
+    ## HR_slf_ps:S -0.670  0.051 -0.001  0.002  0.000                         
+    ## HR_slf_p:TT -0.697  0.053 -0.001  0.000 -0.003  0.467                  
+    ## HR_thr_ps:S  0.051 -0.670 -0.001  0.002  0.000 -0.065  -0.035          
+    ## HR_thr_p:TT  0.053 -0.697 -0.001  0.000 -0.003 -0.035  -0.040    0.467 
     ## convergence code: 0
     ## boundary (singular) fit: see ?isSingular
 
@@ -995,9 +1061,8 @@ summary(model_s_1)
     ## Linear mixed model fit by REML. t-tests use Satterthwaite's method [
     ## lmerModLmerTest]
     ## Formula: 
-    ## HR_change_self ~ 1 + condition + (HR_self_past + HR_other_past) *  
-    ##     condition + (1 + condition | participant) + (1 + condition |  
-    ##     group)
+    ## HR_change_self ~ 1 + (HR_self_past + HR_other_past) * condition +  
+    ##     (1 + condition | participant) + (1 + condition | group)
     ##    Data: dd
     ## 
     ## REML criterion at convergence: 18430.4
@@ -1007,59 +1072,50 @@ summary(model_s_1)
     ## -6.4986 -0.4853  0.0755  0.5500  5.8691 
     ## 
     ## Random effects:
-    ##  Groups      Name                 Variance  Std.Dev.  Corr     
-    ##  participant (Intercept)          0.000e+00 0.000e+00          
-    ##              conditionSynchronous 3.622e-11 6.019e-06  NaN     
-    ##              conditionTurnTaking  2.325e-10 1.525e-05  NaN 0.65
-    ##  group       (Intercept)          0.000e+00 0.000e+00          
-    ##              conditionSynchronous 8.005e-12 2.829e-06  NaN     
-    ##              conditionTurnTaking  4.722e-10 2.173e-05  NaN 0.43
-    ##  Residual                         5.935e-01 7.704e-01          
+    ##  Groups      Name                 Variance  Std.Dev.  Corr       
+    ##  participant (Intercept)          0.000e+00 0.000e+00            
+    ##              conditionSynchronous 1.096e-12 1.047e-06   NaN      
+    ##              conditionTurnTaking  2.545e-10 1.595e-05   NaN -0.18
+    ##  group       (Intercept)          8.820e-10 2.970e-05            
+    ##              conditionSynchronous 3.129e-09 5.594e-05 -1.00      
+    ##              conditionTurnTaking  6.354e-10 2.521e-05 -0.97  0.97
+    ##  Residual                         5.935e-01 7.704e-01            
     ## Number of obs: 7936, groups:  participant, 16; group, 8
     ## 
     ## Fixed effects:
     ##                                      Estimate Std. Error         df
-    ## (Intercept)                         4.496e-03  1.435e-02  7.927e+03
-    ## conditionSynchronous                1.459e-03  2.144e-02  7.927e+03
-    ## conditionTurnTaking                -2.834e-03  2.060e-02  7.925e+03
+    ## (Intercept)                         4.496e-03  1.435e-02  7.919e+03
     ## HR_self_past                       -3.632e-01  1.444e-02  7.927e+03
     ## HR_other_past                       1.578e-02  1.444e-02  7.927e+03
-    ## conditionSynchronous:HR_self_past  -4.549e-02  2.156e-02  7.927e+03
-    ## conditionTurnTaking:HR_self_past    1.407e-02  2.071e-02  7.927e+03
-    ## conditionSynchronous:HR_other_past -9.474e-03  2.156e-02  7.927e+03
-    ## conditionTurnTaking:HR_other_past  -3.502e-02  2.071e-02  7.927e+03
+    ## conditionSynchronous                1.459e-03  2.144e-02  7.912e+03
+    ## conditionTurnTaking                -2.834e-03  2.060e-02  7.924e+03
+    ## HR_self_past:conditionSynchronous  -4.549e-02  2.156e-02  7.927e+03
+    ## HR_self_past:conditionTurnTaking    1.407e-02  2.071e-02  7.927e+03
+    ## HR_other_past:conditionSynchronous -9.474e-03  2.156e-02  7.927e+03
+    ## HR_other_past:conditionTurnTaking  -3.502e-02  2.071e-02  7.927e+03
     ##                                    t value Pr(>|t|)    
     ## (Intercept)                          0.313   0.7541    
-    ## conditionSynchronous                 0.068   0.9458    
-    ## conditionTurnTaking                 -0.138   0.8906    
     ## HR_self_past                       -25.155   <2e-16 ***
     ## HR_other_past                        1.093   0.2743    
-    ## conditionSynchronous:HR_self_past   -2.111   0.0348 *  
-    ## conditionTurnTaking:HR_self_past     0.680   0.4967    
-    ## conditionSynchronous:HR_other_past  -0.440   0.6603    
-    ## conditionTurnTaking:HR_other_past   -1.691   0.0908 .  
+    ## conditionSynchronous                 0.068   0.9458    
+    ## conditionTurnTaking                 -0.138   0.8906    
+    ## HR_self_past:conditionSynchronous   -2.111   0.0348 *  
+    ## HR_self_past:conditionTurnTaking     0.680   0.4967    
+    ## HR_other_past:conditionSynchronous  -0.440   0.6603    
+    ## HR_other_past:conditionTurnTaking   -1.691   0.0908 .  
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ## Correlation of Fixed Effects:
-    ##                     (Intr) cndtnS cndtTT HR_sl_ HR_th_ cndtnSynchrns:HR_s_
-    ## cndtnSynchr         -0.670                                                
-    ## cndtnTrnTkn         -0.697  0.466                                         
-    ## HR_self_pst          0.002 -0.001 -0.001                                  
-    ## HR_othr_pst          0.002 -0.001 -0.001 -0.076                           
-    ## cndtnSynchrns:HR_s_ -0.001  0.002  0.001 -0.670  0.051                    
-    ## cndtnTrnTkng:HR_s_  -0.001  0.001 -0.001 -0.697  0.053  0.467             
-    ## cndtnSynchrns:HR_t_ -0.001  0.002  0.001  0.051 -0.670 -0.065             
-    ## cndtnTrnTkng:HR_t_  -0.001  0.001 -0.001  0.053 -0.697 -0.035             
-    ##                     cndtnTrnTkng:HR_s_ cndtnSynchrns:HR_t_
-    ## cndtnSynchr                                               
-    ## cndtnTrnTkn                                               
-    ## HR_self_pst                                               
-    ## HR_othr_pst                                               
-    ## cndtnSynchrns:HR_s_                                       
-    ## cndtnTrnTkng:HR_s_                                        
-    ## cndtnSynchrns:HR_t_ -0.035                                
-    ## cndtnTrnTkng:HR_t_  -0.040              0.467             
+    ##             (Intr) HR_sl_ HR_th_ cndtnS cndtTT HR_s_:S HR_s_:TT HR_t_:S
+    ## HR_self_pst  0.002                                                     
+    ## HR_othr_pst  0.002 -0.076                                              
+    ## cndtnSynchr -0.670 -0.001 -0.001                                       
+    ## cndtnTrnTkn -0.697 -0.001 -0.001  0.466                                
+    ## HR_slf_ps:S -0.001 -0.670  0.051  0.002  0.001                         
+    ## HR_slf_p:TT -0.001 -0.697  0.053  0.001 -0.001  0.467                  
+    ## HR_thr_ps:S -0.001  0.051 -0.670  0.002  0.001 -0.065  -0.035          
+    ## HR_thr_p:TT -0.001  0.053 -0.697  0.001 -0.001 -0.035  -0.040    0.467 
     ## convergence code: 0
     ## boundary (singular) fit: see ?isSingular
 
@@ -1202,7 +1258,7 @@ sig_output <- round(sig_output, 2)
 #Also run it with the star * so we can see whether the interaction is there
 
 
-model_shuffle_s <- lmer(HR_change_self ~ 0 + condition + 
+model_shuffle_s <- lmer(HR_change_self ~ 0 + 
                 ((HR_self_past + HR_other_past)*condition)*pair + 
                 (0 + condition | participant) +
                 (0 + condition | group), data = dd)
@@ -1218,9 +1274,8 @@ summary(model_shuffle_s)
     ## Linear mixed model fit by REML. t-tests use Satterthwaite's method [
     ## lmerModLmerTest]
     ## Formula: 
-    ## HR_change_self ~ 0 + condition + ((HR_self_past + HR_other_past) *  
-    ##     condition) * pair + (0 + condition | participant) + (0 +  
-    ##     condition | group)
+    ## HR_change_self ~ 0 + ((HR_self_past + HR_other_past) * condition) *  
+    ##     pair + (0 + condition | participant) + (0 + condition | group)
     ##    Data: dd
     ## 
     ## REML criterion at convergence: 38596.4
@@ -1242,62 +1297,62 @@ summary(model_shuffle_s)
     ## 
     ## Fixed effects:
     ##                                                  Estimate Std. Error
+    ## HR_self_past                                   -3.632e-01  1.525e-02
+    ## HR_other_past                                   1.578e-02  1.525e-02
     ## conditionConversation                           4.496e-03  1.516e-02
     ## conditionSynchronous                            5.955e-03  1.682e-02
     ## conditionTurnTaking                             1.662e-03  1.562e-02
-    ## HR_self_past                                   -3.632e-01  1.525e-02
-    ## HR_other_past                                   1.578e-02  1.525e-02
     ## pairshuffle                                    -9.560e-03  2.144e-02
-    ## conditionSynchronous:HR_self_past              -4.549e-02  2.277e-02
-    ## conditionTurnTaking:HR_self_past                1.407e-02  2.187e-02
-    ## conditionSynchronous:HR_other_past             -9.474e-03  2.277e-02
-    ## conditionTurnTaking:HR_other_past              -3.502e-02  2.187e-02
+    ## HR_self_past:conditionSynchronous              -4.549e-02  2.277e-02
+    ## HR_self_past:conditionTurnTaking                1.407e-02  2.187e-02
+    ## HR_other_past:conditionSynchronous             -9.474e-03  2.277e-02
+    ## HR_other_past:conditionTurnTaking              -3.502e-02  2.187e-02
     ## HR_self_past:pairshuffle                        3.608e-01  2.215e-02
     ## HR_other_past:pairshuffle                      -3.340e-03  2.219e-02
     ## conditionSynchronous:pairshuffle               -3.353e-03  3.203e-02
     ## conditionTurnTaking:pairshuffle                 7.707e-03  3.078e-02
-    ## conditionSynchronous:HR_self_past:pairshuffle   3.455e-02  3.302e-02
-    ## conditionTurnTaking:HR_self_past:pairshuffle   -2.514e-02  3.177e-02
-    ## conditionSynchronous:HR_other_past:pairshuffle  1.727e-02  3.302e-02
-    ## conditionTurnTaking:HR_other_past:pairshuffle   4.836e-02  3.176e-02
+    ## HR_self_past:conditionSynchronous:pairshuffle   3.455e-02  3.302e-02
+    ## HR_self_past:conditionTurnTaking:pairshuffle   -2.514e-02  3.177e-02
+    ## HR_other_past:conditionSynchronous:pairshuffle  1.727e-02  3.302e-02
+    ## HR_other_past:conditionTurnTaking:pairshuffle   4.836e-02  3.176e-02
     ##                                                        df t value Pr(>|t|)
+    ## HR_self_past                                    1.585e+04 -23.813   <2e-16
+    ## HR_other_past                                   1.585e+04   1.035   0.3007
     ## conditionConversation                           1.585e+04   0.296   0.7669
     ## conditionSynchronous                            1.585e+04   0.354   0.7234
     ## conditionTurnTaking                             1.585e+04   0.106   0.9152
-    ## HR_self_past                                    1.585e+04 -23.813   <2e-16
-    ## HR_other_past                                   1.585e+04   1.035   0.3007
     ## pairshuffle                                     1.585e+04  -0.446   0.6557
-    ## conditionSynchronous:HR_self_past               1.585e+04  -1.998   0.0457
-    ## conditionTurnTaking:HR_self_past                1.585e+04   0.643   0.5199
-    ## conditionSynchronous:HR_other_past              1.585e+04  -0.416   0.6773
-    ## conditionTurnTaking:HR_other_past               1.585e+04  -1.601   0.1094
+    ## HR_self_past:conditionSynchronous               1.585e+04  -1.998   0.0457
+    ## HR_self_past:conditionTurnTaking                1.585e+04   0.643   0.5199
+    ## HR_other_past:conditionSynchronous              1.585e+04  -0.416   0.6773
+    ## HR_other_past:conditionTurnTaking               1.585e+04  -1.601   0.1094
     ## HR_self_past:pairshuffle                        1.585e+04  16.289   <2e-16
     ## HR_other_past:pairshuffle                       1.585e+04  -0.150   0.8804
     ## conditionSynchronous:pairshuffle                1.585e+04  -0.105   0.9166
     ## conditionTurnTaking:pairshuffle                 1.585e+04   0.250   0.8023
-    ## conditionSynchronous:HR_self_past:pairshuffle   1.585e+04   1.046   0.2955
-    ## conditionTurnTaking:HR_self_past:pairshuffle    1.585e+04  -0.791   0.4288
-    ## conditionSynchronous:HR_other_past:pairshuffle  1.585e+04   0.523   0.6010
-    ## conditionTurnTaking:HR_other_past:pairshuffle   1.585e+04   1.523   0.1279
+    ## HR_self_past:conditionSynchronous:pairshuffle   1.585e+04   1.046   0.2955
+    ## HR_self_past:conditionTurnTaking:pairshuffle    1.585e+04  -0.791   0.4288
+    ## HR_other_past:conditionSynchronous:pairshuffle  1.585e+04   0.523   0.6010
+    ## HR_other_past:conditionTurnTaking:pairshuffle   1.585e+04   1.523   0.1279
     ##                                                   
+    ## HR_self_past                                   ***
+    ## HR_other_past                                     
     ## conditionConversation                             
     ## conditionSynchronous                              
     ## conditionTurnTaking                               
-    ## HR_self_past                                   ***
-    ## HR_other_past                                     
     ## pairshuffle                                       
-    ## conditionSynchronous:HR_self_past              *  
-    ## conditionTurnTaking:HR_self_past                  
-    ## conditionSynchronous:HR_other_past                
-    ## conditionTurnTaking:HR_other_past                 
+    ## HR_self_past:conditionSynchronous              *  
+    ## HR_self_past:conditionTurnTaking                  
+    ## HR_other_past:conditionSynchronous                
+    ## HR_other_past:conditionTurnTaking                 
     ## HR_self_past:pairshuffle                       ***
     ## HR_other_past:pairshuffle                         
     ## conditionSynchronous:pairshuffle                  
     ## conditionTurnTaking:pairshuffle                   
-    ## conditionSynchronous:HR_self_past:pairshuffle     
-    ## conditionTurnTaking:HR_self_past:pairshuffle      
-    ## conditionSynchronous:HR_other_past:pairshuffle    
-    ## conditionTurnTaking:HR_other_past:pairshuffle     
+    ## HR_self_past:conditionSynchronous:pairshuffle     
+    ## HR_self_past:conditionTurnTaking:pairshuffle      
+    ## HR_other_past:conditionSynchronous:pairshuffle    
+    ## HR_other_past:conditionTurnTaking:pairshuffle     
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -1329,7 +1384,7 @@ levels(dd$pair)
 
 ``` r
 #Model with 1 and releveled
-model_shuffle_s_1 <- lmer(HR_change_self ~ 1 + condition + 
+model_shuffle_s_1 <- lmer(HR_change_self ~ 1 +
                 ((HR_self_past + HR_other_past)*condition)*pair + 
                 (1 + condition | participant) +
                 (1 + condition | group), data = dd)
@@ -1345,9 +1400,8 @@ summary(model_shuffle_s_1)
     ## Linear mixed model fit by REML. t-tests use Satterthwaite's method [
     ## lmerModLmerTest]
     ## Formula: 
-    ## HR_change_self ~ 1 + condition + ((HR_self_past + HR_other_past) *  
-    ##     condition) * pair + (1 + condition | participant) + (1 +  
-    ##     condition | group)
+    ## HR_change_self ~ 1 + ((HR_self_past + HR_other_past) * condition) *  
+    ##     pair + (1 + condition | participant) + (1 + condition | group)
     ##    Data: dd
     ## 
     ## REML criterion at convergence: 38602.7
@@ -1359,7 +1413,7 @@ summary(model_shuffle_s_1)
     ## Random effects:
     ##  Groups      Name                 Variance  Std.Dev.  Corr       
     ##  participant (Intercept)          0.000e+00 0.000e+00            
-    ##              conditionSynchronous 1.308e-14 1.144e-07   NaN      
+    ##              conditionSynchronous 1.307e-14 1.143e-07   NaN      
     ##              conditionTurnTaking  2.072e-10 1.439e-05   NaN -0.17
     ##  group       (Intercept)          0.000e+00 0.000e+00            
     ##              conditionSynchronous 2.323e-10 1.524e-05   NaN      
@@ -1370,42 +1424,42 @@ summary(model_shuffle_s_1)
     ## Fixed effects:
     ##                                             Estimate Std. Error         df
     ## (Intercept)                               -2.842e-04  1.072e-02  1.585e+04
-    ## conditionSynchronous                      -2.175e-04  1.602e-02  1.584e+04
-    ## conditionTurnTaking                        1.019e-03  1.539e-02  1.583e+04
     ## HR_self_past                              -1.828e-01  1.107e-02  1.585e+04
     ## HR_other_past                              1.411e-02  1.110e-02  1.585e+04
+    ## conditionSynchronous                      -2.175e-04  1.602e-02  1.584e+04
+    ## conditionTurnTaking                        1.019e-03  1.539e-02  1.583e+04
     ## pair.L                                     6.760e-03  1.516e-02  1.585e+04
-    ## conditionSynchronous:HR_self_past         -2.822e-02  1.651e-02  1.585e+04
-    ## conditionTurnTaking:HR_self_past           1.503e-03  1.589e-02  1.585e+04
-    ## conditionSynchronous:HR_other_past        -8.407e-04  1.651e-02  1.585e+04
-    ## conditionTurnTaking:HR_other_past         -1.084e-02  1.588e-02  1.585e+04
+    ## HR_self_past:conditionSynchronous         -2.822e-02  1.651e-02  1.585e+04
+    ## HR_self_past:conditionTurnTaking           1.503e-03  1.589e-02  1.585e+04
+    ## HR_other_past:conditionSynchronous        -8.407e-04  1.651e-02  1.585e+04
+    ## HR_other_past:conditionTurnTaking         -1.084e-02  1.588e-02  1.585e+04
     ## HR_self_past:pair.L                       -2.551e-01  1.566e-02  1.585e+04
     ## HR_other_past:pair.L                       2.362e-03  1.569e-02  1.585e+04
     ## conditionSynchronous:pair.L                2.371e-03  2.265e-02  1.585e+04
     ## conditionTurnTaking:pair.L                -5.449e-03  2.177e-02  1.585e+04
-    ## conditionSynchronous:HR_self_past:pair.L  -2.443e-02  2.335e-02  1.585e+04
-    ## conditionTurnTaking:HR_self_past:pair.L    1.778e-02  2.247e-02  1.585e+04
-    ## conditionSynchronous:HR_other_past:pair.L -1.221e-02  2.335e-02  1.585e+04
-    ## conditionTurnTaking:HR_other_past:pair.L  -3.420e-02  2.246e-02  1.585e+04
+    ## HR_self_past:conditionSynchronous:pair.L  -2.443e-02  2.335e-02  1.585e+04
+    ## HR_self_past:conditionTurnTaking:pair.L    1.778e-02  2.247e-02  1.585e+04
+    ## HR_other_past:conditionSynchronous:pair.L -1.221e-02  2.335e-02  1.585e+04
+    ## HR_other_past:conditionTurnTaking:pair.L  -3.420e-02  2.246e-02  1.585e+04
     ##                                           t value Pr(>|t|)    
     ## (Intercept)                                -0.027   0.9789    
-    ## conditionSynchronous                       -0.014   0.9892    
-    ## conditionTurnTaking                         0.066   0.9472    
     ## HR_self_past                              -16.506   <2e-16 ***
     ## HR_other_past                               1.272   0.2035    
+    ## conditionSynchronous                       -0.014   0.9892    
+    ## conditionTurnTaking                         0.066   0.9472    
     ## pair.L                                      0.446   0.6557    
-    ## conditionSynchronous:HR_self_past          -1.709   0.0875 .  
-    ## conditionTurnTaking:HR_self_past            0.095   0.9246    
-    ## conditionSynchronous:HR_other_past         -0.051   0.9594    
-    ## conditionTurnTaking:HR_other_past          -0.682   0.4950    
+    ## HR_self_past:conditionSynchronous          -1.709   0.0875 .  
+    ## HR_self_past:conditionTurnTaking            0.095   0.9246    
+    ## HR_other_past:conditionSynchronous         -0.051   0.9594    
+    ## HR_other_past:conditionTurnTaking          -0.682   0.4950    
     ## HR_self_past:pair.L                       -16.289   <2e-16 ***
     ## HR_other_past:pair.L                        0.150   0.8804    
     ## conditionSynchronous:pair.L                 0.105   0.9166    
     ## conditionTurnTaking:pair.L                 -0.250   0.8023    
-    ## conditionSynchronous:HR_self_past:pair.L   -1.046   0.2955    
-    ## conditionTurnTaking:HR_self_past:pair.L     0.791   0.4288    
-    ## conditionSynchronous:HR_other_past:pair.L  -0.523   0.6010    
-    ## conditionTurnTaking:HR_other_past:pair.L   -1.523   0.1279    
+    ## HR_self_past:conditionSynchronous:pair.L   -1.046   0.2955    
+    ## HR_self_past:conditionTurnTaking:pair.L     0.791   0.4288    
+    ## HR_other_past:conditionSynchronous:pair.L  -0.523   0.6010    
+    ## HR_other_past:conditionTurnTaking:pair.L   -1.523   0.1279    
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -1425,7 +1479,7 @@ sig_output <- subset(output, output$`Pr(>|t|)` < 0.05)
 sig_output <- round(sig_output, 2)
 #Making a column for nice read
 sig_output$p_value <- ">0.01"
-sig_output[2, 6] <- ">0.05"
+sig_output[3, 6] <- ">0.05"
 ```
 
 ### Creating controls: surrogate pair controls
@@ -1633,7 +1687,7 @@ sig_output[7, 6] <- ">0.05"
 
 #Also run it with the star * so we can see whether the interaction is there
 
-model_su_s <- lmer(HR_change_self ~ 0 + condition + 
+model_su_s <- lmer(HR_change_self ~ 0 + 
                 ((HR_self_past + HR_other_past)*condition)*type + 
                 (0 + condition | participant) +
                 (0 + condition | group), data = dd_surro)
@@ -1649,9 +1703,8 @@ summary(model_su_s)
     ## Linear mixed model fit by REML. t-tests use Satterthwaite's method [
     ## lmerModLmerTest]
     ## Formula: 
-    ## HR_change_self ~ 0 + condition + ((HR_self_past + HR_other_past) *  
-    ##     condition) * type + (0 + condition | participant) + (0 +  
-    ##     condition | group)
+    ## HR_change_self ~ 0 + ((HR_self_past + HR_other_past) * condition) *  
+    ##     type + (0 + condition | participant) + (0 + condition | group)
     ##    Data: dd_surro
     ## 
     ## REML criterion at convergence: 51038.3
@@ -1661,74 +1714,74 @@ summary(model_su_s)
     ## -7.1228 -0.4629  0.0727  0.5031  5.9458 
     ## 
     ## Random effects:
-    ##  Groups      Name                  Variance  Std.Dev.  Corr       
-    ##  participant conditionConversation 0.000e+00 0.000e+00            
-    ##              conditionSynchronous  6.433e-13 8.021e-07   NaN      
-    ##              conditionTurnTaking   1.075e-10 1.037e-05   NaN -0.63
-    ##  group       conditionConversation 0.000e+00 0.000e+00            
-    ##              conditionSynchronous  1.393e-10 1.180e-05  NaN       
-    ##              conditionTurnTaking   3.282e-11 5.729e-06  NaN  0.84 
-    ##  Residual                          5.783e-01 7.604e-01            
+    ##  Groups      Name                  Variance  Std.Dev.  Corr     
+    ##  participant conditionConversation 0.000e+00 0.000e+00          
+    ##              conditionSynchronous  6.593e-13 8.120e-07  NaN     
+    ##              conditionTurnTaking   6.710e-11 8.191e-06  NaN 1.00
+    ##  group       conditionConversation 0.000e+00 0.000e+00          
+    ##              conditionSynchronous  1.307e-11 3.615e-06  NaN     
+    ##              conditionTurnTaking   1.654e-11 4.067e-06  NaN 0.81
+    ##  Residual                          5.783e-01 7.604e-01          
     ## Number of obs: 22240, groups:  participant, 16; group, 8
     ## 
     ## Fixed effects:
     ##                                                    Estimate Std. Error
+    ## HR_self_past                                     -3.632e-01  1.425e-02
+    ## HR_other_past                                     1.578e-02  1.425e-02
     ## conditionConversation                             4.496e-03  1.417e-02
     ## conditionSynchronous                              5.955e-03  1.572e-02
     ## conditionTurnTaking                               1.662e-03  1.459e-02
-    ## HR_self_past                                     -3.632e-01  1.425e-02
-    ## HR_other_past                                     1.578e-02  1.425e-02
     ## typesurrogate                                     4.661e-03  1.735e-02
-    ## conditionSynchronous:HR_self_past                -4.549e-02  2.128e-02
-    ## conditionTurnTaking:HR_self_past                  1.407e-02  2.044e-02
-    ## conditionSynchronous:HR_other_past               -9.474e-03  2.128e-02
-    ## conditionTurnTaking:HR_other_past                -3.502e-02  2.044e-02
+    ## HR_self_past:conditionSynchronous                -4.549e-02  2.128e-02
+    ## HR_self_past:conditionTurnTaking                  1.407e-02  2.044e-02
+    ## HR_other_past:conditionSynchronous               -9.474e-03  2.128e-02
+    ## HR_other_past:conditionTurnTaking                -3.502e-02  2.044e-02
     ## HR_self_past:typesurrogate                        4.440e-02  1.744e-02
     ## HR_other_past:typesurrogate                      -4.419e-02  1.744e-02
     ## conditionSynchronous:typesurrogate               -7.150e-03  2.616e-02
     ## conditionTurnTaking:typesurrogate                 4.882e-03  2.547e-02
-    ## conditionSynchronous:HR_self_past:typesurrogate   1.975e-01  2.623e-02
-    ## conditionTurnTaking:HR_self_past:typesurrogate   -7.541e-03  2.567e-02
-    ## conditionSynchronous:HR_other_past:typesurrogate  2.772e-02  2.623e-02
-    ## conditionTurnTaking:HR_other_past:typesurrogate   3.373e-02  2.567e-02
+    ## HR_self_past:conditionSynchronous:typesurrogate   1.975e-01  2.623e-02
+    ## HR_self_past:conditionTurnTaking:typesurrogate   -7.541e-03  2.567e-02
+    ## HR_other_past:conditionSynchronous:typesurrogate  2.772e-02  2.623e-02
+    ## HR_other_past:conditionTurnTaking:typesurrogate   3.373e-02  2.567e-02
     ##                                                          df t value
-    ## conditionConversation                             2.222e+04   0.317
-    ## conditionSynchronous                              2.221e+04   0.379
-    ## conditionTurnTaking                               2.222e+04   0.114
     ## HR_self_past                                      2.222e+04 -25.483
     ## HR_other_past                                     2.222e+04   1.108
+    ## conditionConversation                             2.222e+04   0.317
+    ## conditionSynchronous                              2.222e+04   0.379
+    ## conditionTurnTaking                               2.222e+04   0.114
     ## typesurrogate                                     2.222e+04   0.269
-    ## conditionSynchronous:HR_self_past                 2.222e+04  -2.138
-    ## conditionTurnTaking:HR_self_past                  2.222e+04   0.689
-    ## conditionSynchronous:HR_other_past                2.222e+04  -0.445
-    ## conditionTurnTaking:HR_other_past                 2.222e+04  -1.713
+    ## HR_self_past:conditionSynchronous                 2.222e+04  -2.138
+    ## HR_self_past:conditionTurnTaking                  2.222e+04   0.689
+    ## HR_other_past:conditionSynchronous                2.222e+04  -0.445
+    ## HR_other_past:conditionTurnTaking                 2.222e+04  -1.713
     ## HR_self_past:typesurrogate                        2.222e+04   2.546
     ## HR_other_past:typesurrogate                       2.222e+04  -2.533
     ## conditionSynchronous:typesurrogate                2.222e+04  -0.273
     ## conditionTurnTaking:typesurrogate                 2.222e+04   0.192
-    ## conditionSynchronous:HR_self_past:typesurrogate   2.222e+04   7.529
-    ## conditionTurnTaking:HR_self_past:typesurrogate    2.222e+04  -0.294
-    ## conditionSynchronous:HR_other_past:typesurrogate  2.222e+04   1.057
-    ## conditionTurnTaking:HR_other_past:typesurrogate   2.222e+04   1.314
+    ## HR_self_past:conditionSynchronous:typesurrogate   2.222e+04   7.529
+    ## HR_self_past:conditionTurnTaking:typesurrogate    2.222e+04  -0.294
+    ## HR_other_past:conditionSynchronous:typesurrogate  2.222e+04   1.057
+    ## HR_other_past:conditionTurnTaking:typesurrogate   2.222e+04   1.314
     ##                                                  Pr(>|t|)    
+    ## HR_self_past                                      < 2e-16 ***
+    ## HR_other_past                                      0.2681    
     ## conditionConversation                              0.7510    
     ## conditionSynchronous                               0.7048    
     ## conditionTurnTaking                                0.9093    
-    ## HR_self_past                                      < 2e-16 ***
-    ## HR_other_past                                      0.2681    
     ## typesurrogate                                      0.7883    
-    ## conditionSynchronous:HR_self_past                  0.0325 *  
-    ## conditionTurnTaking:HR_self_past                   0.4911    
-    ## conditionSynchronous:HR_other_past                 0.6561    
-    ## conditionTurnTaking:HR_other_past                  0.0867 .  
+    ## HR_self_past:conditionSynchronous                  0.0325 *  
+    ## HR_self_past:conditionTurnTaking                   0.4911    
+    ## HR_other_past:conditionSynchronous                 0.6561    
+    ## HR_other_past:conditionTurnTaking                  0.0867 .  
     ## HR_self_past:typesurrogate                         0.0109 *  
     ## HR_other_past:typesurrogate                        0.0113 *  
     ## conditionSynchronous:typesurrogate                 0.7846    
     ## conditionTurnTaking:typesurrogate                  0.8480    
-    ## conditionSynchronous:HR_self_past:typesurrogate  5.31e-14 ***
-    ## conditionTurnTaking:HR_self_past:typesurrogate     0.7690    
-    ## conditionSynchronous:HR_other_past:typesurrogate   0.2907    
-    ## conditionTurnTaking:HR_other_past:typesurrogate    0.1889    
+    ## HR_self_past:conditionSynchronous:typesurrogate  5.31e-14 ***
+    ## HR_self_past:conditionTurnTaking:typesurrogate     0.7690    
+    ## HR_other_past:conditionSynchronous:typesurrogate   0.2907    
+    ## HR_other_past:conditionTurnTaking:typesurrogate    0.1889    
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -1751,7 +1804,7 @@ sig_output_2$p_value <- ">0.01"
 sig_output_2[2:4, 6] <- ">0.05"
 
 #The model with 1 as the intercept
-model_su_s_1 <- lmer(HR_change_self ~ 1 + condition + 
+model_su_s_1 <- lmer(HR_change_self ~ 1 + 
                 ((HR_self_past + HR_other_past)*condition)*type + 
                 (1 + condition | participant) +
                 (1 + condition | group), data = dd_surro)
@@ -1767,9 +1820,8 @@ summary(model_su_s_1)
     ## Linear mixed model fit by REML. t-tests use Satterthwaite's method [
     ## lmerModLmerTest]
     ## Formula: 
-    ## HR_change_self ~ 1 + condition + ((HR_self_past + HR_other_past) *  
-    ##     condition) * type + (1 + condition | participant) + (1 +  
-    ##     condition | group)
+    ## HR_change_self ~ 1 + ((HR_self_past + HR_other_past) * condition) *  
+    ##     type + (1 + condition | participant) + (1 + condition | group)
     ##    Data: dd_surro
     ## 
     ## REML criterion at convergence: 51038.3
@@ -1779,74 +1831,74 @@ summary(model_su_s_1)
     ## -7.1228 -0.4629  0.0727  0.5031  5.9458 
     ## 
     ## Random effects:
-    ##  Groups      Name                 Variance  Std.Dev.  Corr     
-    ##  participant (Intercept)          0.000e+00 0.000e+00          
-    ##              conditionSynchronous 6.468e-19 8.042e-10  NaN     
-    ##              conditionTurnTaking  3.632e-12 1.906e-06  NaN 0.06
-    ##  group       (Intercept)          0.000e+00 0.000e+00          
-    ##              conditionSynchronous 1.213e-12 1.101e-06  NaN     
-    ##              conditionTurnTaking  5.548e-11 7.448e-06  NaN 0.96
-    ##  Residual                         5.783e-01 7.604e-01          
+    ##  Groups      Name                 Variance  Std.Dev.  Corr       
+    ##  participant (Intercept)          9.206e-10 3.034e-05            
+    ##              conditionSynchronous 1.938e-10 1.392e-05 -1.00      
+    ##              conditionTurnTaking  4.024e-10 2.006e-05 -0.69  0.69
+    ##  group       (Intercept)          4.105e-10 2.026e-05            
+    ##              conditionSynchronous 1.184e-13 3.441e-07 -1.00      
+    ##              conditionTurnTaking  9.941e-10 3.153e-05 -0.59  0.59
+    ##  Residual                         5.783e-01 7.604e-01            
     ## Number of obs: 22240, groups:  participant, 16; group, 8
     ## 
     ## Fixed effects:
     ##                                                    Estimate Std. Error
     ## (Intercept)                                       4.496e-03  1.417e-02
-    ## conditionSynchronous                              1.459e-03  2.116e-02
-    ## conditionTurnTaking                              -2.834e-03  2.034e-02
     ## HR_self_past                                     -3.632e-01  1.425e-02
     ## HR_other_past                                     1.578e-02  1.425e-02
+    ## conditionSynchronous                              1.459e-03  2.116e-02
+    ## conditionTurnTaking                              -2.834e-03  2.034e-02
     ## typesurrogate                                     4.661e-03  1.735e-02
-    ## conditionSynchronous:HR_self_past                -4.549e-02  2.128e-02
-    ## conditionTurnTaking:HR_self_past                  1.407e-02  2.044e-02
-    ## conditionSynchronous:HR_other_past               -9.474e-03  2.128e-02
-    ## conditionTurnTaking:HR_other_past                -3.502e-02  2.044e-02
+    ## HR_self_past:conditionSynchronous                -4.549e-02  2.128e-02
+    ## HR_self_past:conditionTurnTaking                  1.407e-02  2.044e-02
+    ## HR_other_past:conditionSynchronous               -9.474e-03  2.128e-02
+    ## HR_other_past:conditionTurnTaking                -3.502e-02  2.044e-02
     ## HR_self_past:typesurrogate                        4.440e-02  1.744e-02
     ## HR_other_past:typesurrogate                      -4.419e-02  1.744e-02
     ## conditionSynchronous:typesurrogate               -7.150e-03  2.616e-02
     ## conditionTurnTaking:typesurrogate                 4.882e-03  2.547e-02
-    ## conditionSynchronous:HR_self_past:typesurrogate   1.975e-01  2.623e-02
-    ## conditionTurnTaking:HR_self_past:typesurrogate   -7.541e-03  2.567e-02
-    ## conditionSynchronous:HR_other_past:typesurrogate  2.772e-02  2.623e-02
-    ## conditionTurnTaking:HR_other_past:typesurrogate   3.373e-02  2.567e-02
+    ## HR_self_past:conditionSynchronous:typesurrogate   1.975e-01  2.623e-02
+    ## HR_self_past:conditionTurnTaking:typesurrogate   -7.541e-03  2.567e-02
+    ## HR_other_past:conditionSynchronous:typesurrogate  2.772e-02  2.623e-02
+    ## HR_other_past:conditionTurnTaking:typesurrogate   3.373e-02  2.567e-02
     ##                                                          df t value
-    ## (Intercept)                                       2.222e+04   0.317
-    ## conditionSynchronous                              2.222e+04   0.069
-    ## conditionTurnTaking                               2.222e+04  -0.139
+    ## (Intercept)                                       2.200e+04   0.317
     ## HR_self_past                                      2.222e+04 -25.483
     ## HR_other_past                                     2.222e+04   1.108
-    ## typesurrogate                                     2.222e+04   0.269
-    ## conditionSynchronous:HR_self_past                 2.222e+04  -2.138
-    ## conditionTurnTaking:HR_self_past                  2.222e+04   0.689
-    ## conditionSynchronous:HR_other_past                2.222e+04  -0.445
-    ## conditionTurnTaking:HR_other_past                 2.222e+04  -1.713
+    ## conditionSynchronous                              2.222e+04   0.069
+    ## conditionTurnTaking                               2.212e+04  -0.139
+    ## typesurrogate                                     2.178e+04   0.269
+    ## HR_self_past:conditionSynchronous                 2.222e+04  -2.138
+    ## HR_self_past:conditionTurnTaking                  2.222e+04   0.689
+    ## HR_other_past:conditionSynchronous                2.222e+04  -0.445
+    ## HR_other_past:conditionTurnTaking                 2.222e+04  -1.713
     ## HR_self_past:typesurrogate                        2.222e+04   2.546
     ## HR_other_past:typesurrogate                       2.222e+04  -2.533
     ## conditionSynchronous:typesurrogate                2.222e+04  -0.273
-    ## conditionTurnTaking:typesurrogate                 2.222e+04   0.192
-    ## conditionSynchronous:HR_self_past:typesurrogate   2.222e+04   7.529
-    ## conditionTurnTaking:HR_self_past:typesurrogate    2.222e+04  -0.294
-    ## conditionSynchronous:HR_other_past:typesurrogate  2.222e+04   1.057
-    ## conditionTurnTaking:HR_other_past:typesurrogate   2.222e+04   1.314
+    ## conditionTurnTaking:typesurrogate                 2.204e+04   0.192
+    ## HR_self_past:conditionSynchronous:typesurrogate   2.222e+04   7.529
+    ## HR_self_past:conditionTurnTaking:typesurrogate    2.222e+04  -0.294
+    ## HR_other_past:conditionSynchronous:typesurrogate  2.222e+04   1.057
+    ## HR_other_past:conditionTurnTaking:typesurrogate   2.222e+04   1.314
     ##                                                  Pr(>|t|)    
     ## (Intercept)                                        0.7510    
-    ## conditionSynchronous                               0.9450    
-    ## conditionTurnTaking                                0.8892    
     ## HR_self_past                                      < 2e-16 ***
     ## HR_other_past                                      0.2681    
+    ## conditionSynchronous                               0.9450    
+    ## conditionTurnTaking                                0.8892    
     ## typesurrogate                                      0.7883    
-    ## conditionSynchronous:HR_self_past                  0.0325 *  
-    ## conditionTurnTaking:HR_self_past                   0.4911    
-    ## conditionSynchronous:HR_other_past                 0.6561    
-    ## conditionTurnTaking:HR_other_past                  0.0867 .  
+    ## HR_self_past:conditionSynchronous                  0.0325 *  
+    ## HR_self_past:conditionTurnTaking                   0.4911    
+    ## HR_other_past:conditionSynchronous                 0.6561    
+    ## HR_other_past:conditionTurnTaking                  0.0867 .  
     ## HR_self_past:typesurrogate                         0.0109 *  
     ## HR_other_past:typesurrogate                        0.0113 *  
     ## conditionSynchronous:typesurrogate                 0.7846    
     ## conditionTurnTaking:typesurrogate                  0.8480    
-    ## conditionSynchronous:HR_self_past:typesurrogate  5.31e-14 ***
-    ## conditionTurnTaking:HR_self_past:typesurrogate     0.7690    
-    ## conditionSynchronous:HR_other_past:typesurrogate   0.2907    
-    ## conditionTurnTaking:HR_other_past:typesurrogate    0.1889    
+    ## HR_self_past:conditionSynchronous:typesurrogate  5.31e-14 ***
+    ## HR_self_past:conditionTurnTaking:typesurrogate     0.7690    
+    ## HR_other_past:conditionSynchronous:typesurrogate   0.2907    
+    ## HR_other_past:conditionTurnTaking:typesurrogate    0.1889    
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -1867,9 +1919,8 @@ summary(model_su_s_1)
     ## Linear mixed model fit by REML. t-tests use Satterthwaite's method [
     ## lmerModLmerTest]
     ## Formula: 
-    ## HR_change_self ~ 1 + condition + ((HR_self_past + HR_other_past) *  
-    ##     condition) * type + (1 + condition | participant) + (1 +  
-    ##     condition | group)
+    ## HR_change_self ~ 1 + ((HR_self_past + HR_other_past) * condition) *  
+    ##     type + (1 + condition | participant) + (1 + condition | group)
     ##    Data: dd_surro
     ## 
     ## REML criterion at convergence: 51038.3
@@ -1879,74 +1930,74 @@ summary(model_su_s_1)
     ## -7.1228 -0.4629  0.0727  0.5031  5.9458 
     ## 
     ## Random effects:
-    ##  Groups      Name                 Variance  Std.Dev.  Corr     
-    ##  participant (Intercept)          0.000e+00 0.000e+00          
-    ##              conditionSynchronous 6.468e-19 8.042e-10  NaN     
-    ##              conditionTurnTaking  3.632e-12 1.906e-06  NaN 0.06
-    ##  group       (Intercept)          0.000e+00 0.000e+00          
-    ##              conditionSynchronous 1.213e-12 1.101e-06  NaN     
-    ##              conditionTurnTaking  5.548e-11 7.448e-06  NaN 0.96
-    ##  Residual                         5.783e-01 7.604e-01          
+    ##  Groups      Name                 Variance  Std.Dev.  Corr       
+    ##  participant (Intercept)          9.206e-10 3.034e-05            
+    ##              conditionSynchronous 1.938e-10 1.392e-05 -1.00      
+    ##              conditionTurnTaking  4.024e-10 2.006e-05 -0.69  0.69
+    ##  group       (Intercept)          4.105e-10 2.026e-05            
+    ##              conditionSynchronous 1.184e-13 3.441e-07 -1.00      
+    ##              conditionTurnTaking  9.941e-10 3.153e-05 -0.59  0.59
+    ##  Residual                         5.783e-01 7.604e-01            
     ## Number of obs: 22240, groups:  participant, 16; group, 8
     ## 
     ## Fixed effects:
     ##                                                    Estimate Std. Error
     ## (Intercept)                                       4.496e-03  1.417e-02
-    ## conditionSynchronous                              1.459e-03  2.116e-02
-    ## conditionTurnTaking                              -2.834e-03  2.034e-02
     ## HR_self_past                                     -3.632e-01  1.425e-02
     ## HR_other_past                                     1.578e-02  1.425e-02
+    ## conditionSynchronous                              1.459e-03  2.116e-02
+    ## conditionTurnTaking                              -2.834e-03  2.034e-02
     ## typesurrogate                                     4.661e-03  1.735e-02
-    ## conditionSynchronous:HR_self_past                -4.549e-02  2.128e-02
-    ## conditionTurnTaking:HR_self_past                  1.407e-02  2.044e-02
-    ## conditionSynchronous:HR_other_past               -9.474e-03  2.128e-02
-    ## conditionTurnTaking:HR_other_past                -3.502e-02  2.044e-02
+    ## HR_self_past:conditionSynchronous                -4.549e-02  2.128e-02
+    ## HR_self_past:conditionTurnTaking                  1.407e-02  2.044e-02
+    ## HR_other_past:conditionSynchronous               -9.474e-03  2.128e-02
+    ## HR_other_past:conditionTurnTaking                -3.502e-02  2.044e-02
     ## HR_self_past:typesurrogate                        4.440e-02  1.744e-02
     ## HR_other_past:typesurrogate                      -4.419e-02  1.744e-02
     ## conditionSynchronous:typesurrogate               -7.150e-03  2.616e-02
     ## conditionTurnTaking:typesurrogate                 4.882e-03  2.547e-02
-    ## conditionSynchronous:HR_self_past:typesurrogate   1.975e-01  2.623e-02
-    ## conditionTurnTaking:HR_self_past:typesurrogate   -7.541e-03  2.567e-02
-    ## conditionSynchronous:HR_other_past:typesurrogate  2.772e-02  2.623e-02
-    ## conditionTurnTaking:HR_other_past:typesurrogate   3.373e-02  2.567e-02
+    ## HR_self_past:conditionSynchronous:typesurrogate   1.975e-01  2.623e-02
+    ## HR_self_past:conditionTurnTaking:typesurrogate   -7.541e-03  2.567e-02
+    ## HR_other_past:conditionSynchronous:typesurrogate  2.772e-02  2.623e-02
+    ## HR_other_past:conditionTurnTaking:typesurrogate   3.373e-02  2.567e-02
     ##                                                          df t value
-    ## (Intercept)                                       2.222e+04   0.317
-    ## conditionSynchronous                              2.222e+04   0.069
-    ## conditionTurnTaking                               2.222e+04  -0.139
+    ## (Intercept)                                       2.200e+04   0.317
     ## HR_self_past                                      2.222e+04 -25.483
     ## HR_other_past                                     2.222e+04   1.108
-    ## typesurrogate                                     2.222e+04   0.269
-    ## conditionSynchronous:HR_self_past                 2.222e+04  -2.138
-    ## conditionTurnTaking:HR_self_past                  2.222e+04   0.689
-    ## conditionSynchronous:HR_other_past                2.222e+04  -0.445
-    ## conditionTurnTaking:HR_other_past                 2.222e+04  -1.713
+    ## conditionSynchronous                              2.222e+04   0.069
+    ## conditionTurnTaking                               2.212e+04  -0.139
+    ## typesurrogate                                     2.178e+04   0.269
+    ## HR_self_past:conditionSynchronous                 2.222e+04  -2.138
+    ## HR_self_past:conditionTurnTaking                  2.222e+04   0.689
+    ## HR_other_past:conditionSynchronous                2.222e+04  -0.445
+    ## HR_other_past:conditionTurnTaking                 2.222e+04  -1.713
     ## HR_self_past:typesurrogate                        2.222e+04   2.546
     ## HR_other_past:typesurrogate                       2.222e+04  -2.533
     ## conditionSynchronous:typesurrogate                2.222e+04  -0.273
-    ## conditionTurnTaking:typesurrogate                 2.222e+04   0.192
-    ## conditionSynchronous:HR_self_past:typesurrogate   2.222e+04   7.529
-    ## conditionTurnTaking:HR_self_past:typesurrogate    2.222e+04  -0.294
-    ## conditionSynchronous:HR_other_past:typesurrogate  2.222e+04   1.057
-    ## conditionTurnTaking:HR_other_past:typesurrogate   2.222e+04   1.314
+    ## conditionTurnTaking:typesurrogate                 2.204e+04   0.192
+    ## HR_self_past:conditionSynchronous:typesurrogate   2.222e+04   7.529
+    ## HR_self_past:conditionTurnTaking:typesurrogate    2.222e+04  -0.294
+    ## HR_other_past:conditionSynchronous:typesurrogate  2.222e+04   1.057
+    ## HR_other_past:conditionTurnTaking:typesurrogate   2.222e+04   1.314
     ##                                                  Pr(>|t|)    
     ## (Intercept)                                        0.7510    
-    ## conditionSynchronous                               0.9450    
-    ## conditionTurnTaking                                0.8892    
     ## HR_self_past                                      < 2e-16 ***
     ## HR_other_past                                      0.2681    
+    ## conditionSynchronous                               0.9450    
+    ## conditionTurnTaking                                0.8892    
     ## typesurrogate                                      0.7883    
-    ## conditionSynchronous:HR_self_past                  0.0325 *  
-    ## conditionTurnTaking:HR_self_past                   0.4911    
-    ## conditionSynchronous:HR_other_past                 0.6561    
-    ## conditionTurnTaking:HR_other_past                  0.0867 .  
+    ## HR_self_past:conditionSynchronous                  0.0325 *  
+    ## HR_self_past:conditionTurnTaking                   0.4911    
+    ## HR_other_past:conditionSynchronous                 0.6561    
+    ## HR_other_past:conditionTurnTaking                  0.0867 .  
     ## HR_self_past:typesurrogate                         0.0109 *  
     ## HR_other_past:typesurrogate                        0.0113 *  
     ## conditionSynchronous:typesurrogate                 0.7846    
     ## conditionTurnTaking:typesurrogate                  0.8480    
-    ## conditionSynchronous:HR_self_past:typesurrogate  5.31e-14 ***
-    ## conditionTurnTaking:HR_self_past:typesurrogate     0.7690    
-    ## conditionSynchronous:HR_other_past:typesurrogate   0.2907    
-    ## conditionTurnTaking:HR_other_past:typesurrogate    0.1889    
+    ## HR_self_past:conditionSynchronous:typesurrogate  5.31e-14 ***
+    ## HR_self_past:conditionTurnTaking:typesurrogate     0.7690    
+    ## HR_other_past:conditionSynchronous:typesurrogate   0.2907    
+    ## HR_other_past:conditionTurnTaking:typesurrogate    0.1889    
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -1969,3 +2020,6 @@ sig_output_2[2:4, 6] <- ">0.05"
 
 Link to the assignment docs:
 <a href="https://github.com/katrinenymann/Assignment_4.git" class="uri">https://github.com/katrinenymann/Assignment_4.git</a>
+
+Link to report:
+<a href="https://docs.google.com/document/d/1b0ZuINvKAYYAEFEWlRaA4D8qe8CBwRsGBXzqboSwsJM/edit?usp=sharing" class="uri">https://docs.google.com/document/d/1b0ZuINvKAYYAEFEWlRaA4D8qe8CBwRsGBXzqboSwsJM/edit?usp=sharing</a>
